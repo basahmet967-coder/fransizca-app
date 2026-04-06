@@ -13,9 +13,17 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; touch-action: manipulation; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: 'Inter', sans-serif; background-color: #fcfcfc; touch-action: manipulation; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        .animate-pop { animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
+        
+        @media (max-height: 650px) {
+            .game-container { padding-top: 10px !important; }
+            .question-box { margin-bottom: 10px !important; padding: 15px !important; }
+            .header-bar { margin-bottom: 10px !important; }
+        }
     </style>
 </head>
 <body>
@@ -24,14 +32,39 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- ICONS ---
-        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-        const IconCheck = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
-        const IconX = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
-        const IconTrophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
-        const IconHeart = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#ef4444" : "none"} stroke="#ef4444" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+        const IconHeart = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill={filled ? "#ff4d4d" : "none"} stroke="#ff4d4d" strokeWidth="2.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+        const IconTrophy = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
 
-        const VERBS_DATA = [
+        const PERSONS = [
+            { label: 'JE', index: 0 }, { label: 'TU', index: 1 }, 
+            { label: 'IL', index: 2 }, { label: 'ELLE', index: 3 },
+            { label: 'NOUS', index: 4 }, { label: 'VOUS', index: 5 }, 
+            { label: 'ILS', index: 6 }, { label: 'ELLES', index: 7 }
+        ];
+
+        const TENSES = [
+            { id: 'pres', label: 'PRÉSENT' }, { id: 'pc', label: 'PASSÉ COMPOSÉ' }, 
+            { id: 'imp', label: 'IMPARFAIT' }, { id: 'fut', label: 'FUTUR SIMPLE' }, 
+            { id: 'subj', label: 'SUBJONCTIF' }, { id: 'cond', label: 'CONDITIONNEL' }
+        ];
+
+        const wrap = (tr, inf, pres, pc, imp, fut, subj, cond) => {
+            const expand = (arr) => [arr[0], arr[1], arr[2], arr[2], arr[3], arr[4], arr[5], arr[5]];
+            return {
+                tr, inf,
+                conjugations: {
+                    pres: expand(pres),
+                    pc: pc.length === 8 ? pc : expand(pc),
+                    imp: expand(imp),
+                    fut: expand(fut),
+                    subj: expand(subj),
+                    cond: expand(cond)
+                }
+            };
+        };
+
+const VERBS_DATA = [
             { tr: "Satın Almak", inf: "acheter", conjugations: { pres: ["achète", "achètes", "achète", "achetons", "achetez", "achètent"], pc: ["ai acheté", "as acheté", "a acheté", "avons acheté", "avez acheté", "ont acheté"], imp: ["achetais", "achetais", "achetait", "achetions", "achetiez", "achetaient"], fut: ["achèterai", "achèteras", "achètera", "achèterons", "achèterez", "achèteront"], subj: ["achète", "achètes", "achète", "achetions", "achetiez", "achètent"], cond: ["achèterais", "achèterais", "achèterait", "achèterions", "achèteriez", "achèteraient"] } },
             { tr: "Sevmek", inf: "aimer", conjugations: { pres: ["aime", "aimes", "aime", "aimons", "aimez", "aiment"], pc: ["ai aimé", "as aimé", "a aimé", "avons aimé", "avez aimé", "ont aimé"], imp: ["aimais", "aimais", "aimait", "aimions", "aimiez", "aimaient"], fut: ["aimerai", "aimeras", "aimera", "aimerons", "aimerez", "aimeront"], subj: ["aime", "aimes", "aime", "aimions", "aimiez", "aiment"], cond: ["aimerais", "aimerais", "aimerait", "aimerions", "aimeriez", "aimeraient"] } },
             { tr: "Gitmek", inf: "aller", conjugations: { pres: ["vais", "vas", "va", "allons", "allez", "vont"], pc: ["suis allé", "es allé", "est allé", "sommes allés", "êtes allés", "sont allés"], imp: ["allais", "allais", "allait", "allions", "alliez", "allaient"], fut: ["irai", "iras", "ira", "irons", "irez", "iront"], subj: ["aille", "ailles", "aille", "allions", "alliez", "aillent"], cond: ["irais", "irais", "irait", "irions", "iriez", "iraient"] } },
@@ -84,31 +117,21 @@
             { tr: "İstemek", inf: "vouloir", conjugations: { pres: ["veux", "veux", "veut", "voulons", "voulez", "veulent"], pc: ["ai voulu", "as voulu", "a voulu", "avons voulu", "avez voulu", "ont voulu"], imp: ["voulais", "voulais", "voulait", "voulions", "vouliez", "voulaient"], fut: ["voudrai", "voudras", "voudra", "voudrons", "voudrez", "voudront"], subj: ["veuille", "veuilles", "veuille", "voulions", "vouliez", "veuillent"], cond: ["voudrais", "voudrais", "voudrait", "voudrions", "voudriez", "voudraient"] } }
         ];
 
-        const TENSES = [
-            { id: 'pres', label: 'Présent' }, { id: 'pc', label: 'Passé Composé' }, { id: 'imp', label: 'Imparfait' },
-            { id: 'fut', label: 'Futur Simple' }, { id: 'subj', label: 'Subjonctif' }, { id: 'cond', label: 'Conditionnel' }
-        ];
-
-        const PERSONS = [
-            { label: 'Je', index: 0 }, { label: 'Tu', index: 1 }, { label: 'Il / Elle', index: 2 },
-            { label: 'Nous', index: 3 }, { label: 'Vous', index: 4 }, { label: 'Ils / Elles', index: 5 }
-        ];
-
-        // --- MAIN APP ---
         function App() {
             const [view, setView] = useState('index');
-            const [currentVerbIdx, setCurrentVerbIdx] = useState(0);
-            const [currentTenseIdx, setCurrentTenseIdx] = useState(0);
-            const [answers, setAnswers] = useState({});
-            const [checked, setChecked] = useState({});
-            const [showAllCorrect, setShowAllCorrect] = useState(false);
-
-            // Game State
             const [gameScore, setGameScore] = useState(0);
+            const [bestScore, setBestScore] = useState(0);
             const [gameLives, setGameLives] = useState(3);
             const [gameChallenge, setGameChallenge] = useState(null);
             const [gameInput, setGameInput] = useState('');
             const [gameFeedback, setGameFeedback] = useState(null);
+            const [isNewRecord, setIsNewRecord] = useState(false);
+
+            // Uygulama açıldığında rekoru hafızadan yükle
+            useEffect(() => {
+                const savedScore = localStorage.getItem('maxScore');
+                if (savedScore) setBestScore(parseInt(savedScore));
+            }, []);
 
             const getRandomChallenge = () => {
                 let v, t, p, answer;
@@ -122,173 +145,145 @@
             };
 
             const startGame = () => {
-                setGameScore(0); setGameLives(3); setGameChallenge(getRandomChallenge());
-                setGameInput(''); setGameFeedback(null); setView('game');
+                setGameScore(0); 
+                setGameLives(3); 
+                setIsNewRecord(false);
+                setGameChallenge(getRandomChallenge());
+                setGameInput(''); 
+                setGameFeedback(null); 
+                setView('game');
             };
 
             const submitGameAnswer = () => {
                 if (!gameChallenge || gameFeedback) return;
                 const isCorrect = gameInput.trim().toLowerCase() === gameChallenge.answer.toLowerCase();
+                
                 if (isCorrect) {
-                    setGameFeedback('correct'); setGameScore(s => s + 1);
-                    setTimeout(() => {
-                        setGameChallenge(getRandomChallenge()); setGameInput(''); setGameFeedback(null);
+                    setGameFeedback('correct'); 
+                    const nextScore = gameScore + 1;
+                    setGameScore(nextScore);
+                    
+                    // Rekor kırma anlık kontrolü
+                    if (nextScore > bestScore) {
+                        setBestScore(nextScore);
+                        localStorage.setItem('maxScore', nextScore.toString());
+                        setIsNewRecord(true);
+                    }
+
+                    setTimeout(() => { 
+                        setGameChallenge(getRandomChallenge()); 
+                        setGameInput(''); 
+                        setGameFeedback(null); 
                     }, 800);
                 } else {
-                    setGameFeedback('wrong'); setGameLives(l => l - 1);
+                    setGameFeedback('wrong'); 
+                    setGameLives(l => l - 1);
                 }
             };
 
-            const handleNext = () => {
-                if (currentTenseIdx < TENSES.length - 1) setCurrentTenseIdx(prev => prev + 1);
-                else if (currentVerbIdx < VERBS_DATA.length - 1) {
-                    setCurrentVerbIdx(prev => prev + 1); setCurrentTenseIdx(0);
-                } else setView('index');
-            };
-
-            useEffect(() => { setShowAllCorrect(false); }, [currentVerbIdx, currentTenseIdx, view]);
-
-            // --- RENDER INDEX ---
             if (view === 'index') {
                 return (
-                    <div className="min-h-screen p-6 animate-fade-in">
-                        <div className="max-w-6xl mx-auto">
-                            <header className="mb-12 text-center">
-                                <h1 className="text-5xl font-black text-indigo-900 mb-4 tracking-tight">La Matrice des Verbes</h1>
-                                <button onClick={startGame} className="px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-2xl shadow-xl hover:bg-indigo-700 transition-all flex items-center gap-3 mx-auto">
-                                    <IconTrophy /> MODE DÉFI
-                                </button>
-                            </header>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {VERBS_DATA.map((verb, vIdx) => (
-                                    <div key={vIdx} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div><h3 className="font-black text-slate-900">{verb.inf.toUpperCase()}</h3><p className="text-[10px] text-slate-400 italic uppercase">{verb.tr}</p></div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-1">
-                                            {TENSES.map((tense, tIdx) => (
-                                                <button key={tIdx} onClick={() => { setCurrentVerbIdx(vIdx); setCurrentTenseIdx(tIdx); setView('quiz'); }}
-                                                    className={`text-[9px] p-2 rounded-lg font-black uppercase tracking-tighter transition-all ${checked[`${vIdx}-${tIdx}`] ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'}`}>
-                                                    {tense.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                    <div className="min-h-screen p-6 animate-fade-in flex flex-col items-center">
+                        <header className="mb-12 text-center w-full max-w-xl">
+                            <h1 className="text-4xl font-black text-indigo-900 mb-2 tracking-tight uppercase">La Matrice des Verbes</h1>
+                            
+                            {/* Rekor Görüntüleme */}
+                            <div className="flex items-center justify-center gap-2 mb-8 bg-indigo-50 py-2 px-4 rounded-full inline-flex">
+                                <IconTrophy className="text-indigo-600" />
+                                <span className="text-sm font-black text-indigo-900">MEILLEUR SCORE : {bestScore}</span>
                             </div>
+
+                            <button onClick={startGame} className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black text-2xl shadow-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
+                                MODE DÉFI
+                            </button>
+                        </header>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
+                            {VERBS_DATA.map((verb, vIdx) => (
+                                <div key={vIdx} className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm opacity-80">
+                                    <h3 className="font-black text-slate-800 text-lg mb-1 uppercase">{verb.inf}</h3>
+                                    <p className="text-[10px] text-slate-400 italic uppercase mb-3">{verb.tr}</p>
+                                    <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+                                        {TENSES.map((t, ti) => <div key={ti} className="bg-slate-50 text-[7px] font-black p-1 px-2 rounded text-slate-300 flex-shrink-0">{t.label}</div>)}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 );
             }
 
-            // --- RENDER GAME MODE ---
             if (view === 'game') {
                 const isGameOver = gameLives <= 0;
                 return (
-                    <div className="min-h-screen p-4 flex flex-col items-center animate-fade-in">
-                        <div className="w-full max-w-md flex justify-between items-center mb-6 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-                            <button onClick={() => setView('index')} className="p-2 bg-slate-50 rounded-xl"><IconHome /></button>
-                            <div className="flex gap-1">{[...Array(3)].map((_, i) => <IconHeart key={i} filled={i < gameLives} />)}</div>
-                            <div className="font-black text-emerald-500 text-xl">{gameScore} <span className="text-[10px] text-slate-400">PTS</span></div>
+                    <div className="min-h-screen p-4 flex flex-col items-center game-container animate-fade-in">
+                        <div className="w-full max-w-md flex justify-between items-center mb-10 header-bar bg-white p-4 rounded-[2rem] shadow-sm border border-slate-50">
+                            <button onClick={() => setView('index')} className="p-3 bg-slate-50 rounded-2xl text-slate-400"><IconHome /></button>
+                            <div className="flex gap-1">
+                                {[...Array(3)].map((_, i) => <IconHeart key={i} filled={i < gameLives} />)}
+                            </div>
+                            <div className="font-black text-slate-400 text-xl"><span className="text-indigo-600">{gameScore}</span> <span className="text-[10px]">PTS</span></div>
                         </div>
 
-                        <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+                        <div className="w-full max-w-md bg-white rounded-[3.5rem] shadow-2xl border border-slate-50 p-6 flex flex-col overflow-hidden relative">
                             {isGameOver ? (
-                                <div className="p-12 text-center">
-                                    <div className="mb-6 inline-block p-6 bg-rose-50 text-rose-500 rounded-full"><IconX size={64} /></div>
-                                    <h2 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter">FIN DE PARTIE</h2>
-                                    <p className="text-slate-500 font-bold mb-8 text-xl">Score Final : {gameScore}</p>
-                                    <button onClick={startGame} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl">REJOUER</button>
+                                <div className="p-10 text-center animate-fade-in">
+                                    <h2 className="text-5xl font-black text-slate-900 mb-2 tracking-tighter">FIN !</h2>
+                                    <div className="flex flex-col gap-2 mb-10">
+                                        <p className="text-slate-400 font-bold text-2xl tracking-tight">Score : {gameScore}</p>
+                                        {isNewRecord && (
+                                            <div className="text-emerald-500 font-black text-lg bg-emerald-50 py-2 px-4 rounded-full animate-bounce">
+                                                NOUVEAU RECORD ! 🏆
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button onClick={startGame} className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black text-2xl shadow-xl">REJOUER</button>
                                 </div>
                             ) : (
-                                <div className="p-8 text-center flex flex-col items-center">
-                                    {/* Question Area (Now Down near input) */}
-                                    <div className="bg-indigo-50 w-full p-6 rounded-[2rem] mb-6 animate-fade-in border-2 border-indigo-100">
-                                        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">{TENSES[gameChallenge.tenseIdx].label}</div>
-                                        <h2 className="text-4xl font-black text-indigo-900 mb-1">{VERBS_DATA[gameChallenge.verbIdx].inf.toUpperCase()}</h2>
-                                        <p className="text-slate-400 text-xs italic mb-4">{VERBS_DATA[gameChallenge.verbIdx].tr}</p>
-                                        <div className="text-indigo-600 font-black text-2xl uppercase tracking-tighter">{PERSONS[gameChallenge.personIdx].label} ...</div>
+                                <>
+                                    <div className="bg-[#ebf0ff] rounded-[2.5rem] p-8 mb-6 text-center question-box animate-fade-in border-2 border-[#dde5ff]">
+                                        <div className="text-sm font-black text-indigo-300 uppercase tracking-widest mb-1">{TENSES[gameChallenge.tenseIdx].label}</div>
+                                        <h2 className="text-5xl font-black text-indigo-900 mb-1 tracking-tight uppercase">{VERBS_DATA[gameChallenge.verbIdx].inf}</h2>
+                                        <p className="text-slate-500 italic mb-6 text-sm">{VERBS_DATA[gameChallenge.verbIdx].tr}</p>
+                                        <div className="text-indigo-700 font-black text-3xl">{PERSONS[gameChallenge.personIdx].label} ...</div>
                                     </div>
 
-                                    {/* Input Area */}
-                                    <div className="w-full relative">
+                                    <div className="mb-6">
                                         <input 
                                             autoFocus 
                                             type="text" 
                                             value={gameInput} 
                                             onChange={(e) => setGameInput(e.target.value)} 
-                                            onKeyDown={(e) => e.key === 'Enter' && submitGameAnswer()} 
-                                            disabled={gameFeedback === 'wrong'} 
-                                            className={`w-full p-6 text-2xl font-black text-center rounded-3xl border-4 outline-none transition-all 
-                                                ${gameFeedback === 'correct' ? 'border-emerald-400 bg-emerald-50' : 
-                                                  gameFeedback === 'wrong' ? 'border-rose-400 bg-rose-50' : 'border-slate-100 focus:border-indigo-500'}`} 
+                                            onKeyDown={(e) => e.key === 'Enter' && submitGameAnswer()}
+                                            disabled={gameFeedback === 'wrong'}
+                                            className="w-full p-6 text-2xl font-black text-center rounded-[2rem] border-2 border-slate-100 outline-none focus:border-indigo-200 transition-all bg-white text-slate-800 placeholder-slate-100" 
                                             placeholder="..." 
+                                            autoComplete="off"
+                                            autoCorrect="off"
+                                            spellCheck="false"
                                         />
-                                        {gameFeedback === 'wrong' && (
-                                            <div className="mt-4 animate-fade-in">
-                                                <div className="p-4 bg-indigo-100 text-indigo-700 rounded-2xl font-black mb-4">La réponse : {gameChallenge.answer}</div>
-                                                <button onClick={() => {setGameChallenge(getRandomChallenge()); setGameInput(''); setGameFeedback(null);}} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold">CONTINUER</button>
-                                            </div>
-                                        )}
-                                        {!gameFeedback && <button onClick={submitGameAnswer} className="w-full mt-4 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg">VÉRIFIER</button>}
                                     </div>
-                                </div>
+
+                                    {gameFeedback === 'wrong' ? (
+                                        <div className="animate-fade-in">
+                                            <div className="p-5 bg-rose-50 text-rose-600 rounded-[2rem] font-black text-center mb-4 text-xl border-2 border-rose-100">
+                                                C'était : {gameChallenge.answer}
+                                            </div>
+                                            <button onClick={() => {setGameChallenge(getRandomChallenge()); setGameInput(''); setGameFeedback(null);}} 
+                                                className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-xl shadow-lg">CONTINUER</button>
+                                        </div>
+                                    ) : (
+                                        <button onClick={submitGameAnswer} 
+                                            className={`w-full py-6 rounded-[2rem] font-black text-2xl shadow-xl transition-all ${gameFeedback === 'correct' ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white active:scale-95'}`}>
+                                            {gameFeedback === 'correct' ? 'EXCELLENT !' : 'VÉRIFIER'}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
                 );
             }
-
-            // --- RENDER PRACTICE ---
-            return (
-                <div className="min-h-screen p-4 flex flex-col items-center animate-fade-in">
-                    <div className="w-full max-w-4xl flex justify-between items-center mb-6">
-                        <button onClick={() => setView('index')} className="p-3 bg-white rounded-xl shadow-sm border border-slate-100"><IconHome /></button>
-                        <div className="text-xs font-black text-slate-400 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100">{currentVerbIdx + 1} / {VERBS_DATA.length}</div>
-                    </div>
-
-                    <div className="w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
-                        <div className="p-8 bg-indigo-600 text-white text-center">
-                            <h1 className="text-4xl font-black mb-1">{VERBS_DATA[currentVerbIdx].inf.toUpperCase()}</h1>
-                            <p className="text-indigo-100 text-sm opacity-80 italic mb-4">{VERBS_DATA[currentVerbIdx].tr}</p>
-                            <div className="bg-white/10 px-6 py-2 rounded-full border border-white/10 font-black text-xs uppercase">{TENSES[currentTenseIdx].label}</div>
-                        </div>
-
-                        <div className="p-6 md:p-12">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                {PERSONS.map((person) => {
-                                    const key = `${currentVerbIdx}-${currentTenseIdx}-${person.index}`;
-                                    const correctVal = VERBS_DATA[currentVerbIdx].conjugations[TENSES[currentTenseIdx].id][person.index].toLowerCase();
-                                    const isCorrect = (answers[key] || "").trim().toLowerCase() === correctVal;
-                                    if (correctVal === "-") return <div key={person.index} className="opacity-20 p-4 bg-slate-50 rounded-2xl text-center">-</div>;
-                                    return (
-                                        <div key={person.index} className="flex flex-col gap-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase ml-2">{person.label}</label>
-                                            <div className="relative">
-                                                <input type="text" value={showAllCorrect ? correctVal : (answers[key] || "")} onChange={(e) => setAnswers(p => ({...p, [key]: e.target.value}))} disabled={checked[`${currentVerbIdx}-${currentTenseIdx}`]} 
-                                                    className={`w-full p-4 rounded-2xl border-2 outline-none ${!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? 'border-slate-100 focus:border-indigo-500' : (isCorrect || showAllCorrect) ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-100 bg-rose-50 text-rose-800'}`} />
-                                                {checked[`${currentVerbIdx}-${currentTenseIdx}`] && <div className="absolute right-4 top-1/2 -translate-y-1/2">{(isCorrect || showAllCorrect) ? <IconCheck size={20} className="text-emerald-500" /> : <IconX size={20} className="text-rose-400" />}</div>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="mt-12 flex flex-col md:flex-row justify-between gap-4">
-                                <button onClick={() => { if (currentTenseIdx > 0) setCurrentTenseIdx(p => p - 1); else if (currentVerbIdx > 0) { setCurrentVerbIdx(v => v - 1); setCurrentTenseIdx(TENSES.length - 1); } }} className="text-slate-400 font-black flex items-center gap-2">Précédent</button>
-                                <div className="flex gap-2">
-                                    {!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? (
-                                        <>
-                                            <button onClick={() => setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}))} className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Vérifier</button>
-                                            <button onClick={() => {setShowAllCorrect(true); setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}));}} className="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">Solutions</button>
-                                        </>
-                                    ) : <button onClick={handleNext} className="px-12 py-4 bg-emerald-600 text-white rounded-2xl font-black shadow-lg flex items-center gap-3">Continuer <IconArrowRight /></button>}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
