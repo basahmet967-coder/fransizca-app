@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Matrice des Verbes - Mode Défi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>La Matrice des Verbes</title>
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%234f46e5'/%3E%3Cpath d='M256 80c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm0 136c-24.3 0-46-10.8-60.8-28.1-14.7 17.3-36.5 28.1-60.8 28.1-44.2 0-80 35.8-80 80s35.8 80 80 80c24.3 0 46-10.8 60.8-28.1 14.7 17.3 36.5 28.1 60.8 28.1s46-10.8 60.8-28.1c14.7 17.3 36.5 28.1 60.8 28.1 44.2 0 80-35.8 80-80s-35.8-80-80-80c-24.3 0-46 10.8-60.8 28.1-14.7-17.3-36.5-28.1-60.8-28.1z' fill='white' opacity='.2'/%3E%3Cpath d='M256 360c-30 0-55-20-65-45h130c-10 25-35 45-65 45z' fill='white'/%3E%3Ccircle cx='256' cy='180' r='100' fill='none' stroke='white' stroke-width='12'/%3E%3Cpath d='M180 440s20-40 76-40 76 40 76 40' stroke='white' stroke-width='20' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
     
@@ -13,9 +13,9 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; touch-action: manipulation; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -25,14 +25,11 @@
         const { useState, useEffect } = React;
 
         // --- ICONS ---
-        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-        const IconBook = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-0.5-5.12"/><path d="M4 19.5h16"/></svg>;
-        const IconCheck = ({ size = 24, strokeWidth = 2, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>;
-        const IconX = ({ size = 24, strokeWidth = 2, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
-        const IconChevronLeft = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
-        const IconArrowRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
-        const IconTrophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="gold" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
-        const IconHeart = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#ef4444" : "none"} stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+        const IconCheck = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+        const IconX = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        const IconTrophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
+        const IconHeart = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#ef4444" : "none"} stroke="#ef4444" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
 
         const VERBS_DATA = [
             { tr: "Satın Almak", inf: "acheter", conjugations: { pres: ["achète", "achètes", "achète", "achetons", "achetez", "achètent"], pc: ["ai acheté", "as acheté", "a acheté", "avons acheté", "avez acheté", "ont acheté"], imp: ["achetais", "achetais", "achetait", "achetions", "achetiez", "achetaient"], fut: ["achèterai", "achèteras", "achètera", "achèterons", "achèterez", "achèteront"], subj: ["achète", "achètes", "achète", "achetions", "achetiez", "achètent"], cond: ["achèterais", "achèterais", "achèterait", "achèterions", "achèteriez", "achèteraient"] } },
@@ -88,12 +85,8 @@
         ];
 
         const TENSES = [
-            { id: 'pres', label: 'Présent' },
-            { id: 'pc', label: 'Passé Composé' },
-            { id: 'imp', label: 'Imparfait' },
-            { id: 'fut', label: 'Futur Simple' },
-            { id: 'subj', label: 'Subjonctif' },
-            { id: 'cond', label: 'Conditionnel' }
+            { id: 'pres', label: 'Présent' }, { id: 'pc', label: 'Passé Composé' }, { id: 'imp', label: 'Imparfait' },
+            { id: 'fut', label: 'Futur Simple' }, { id: 'subj', label: 'Subjonctif' }, { id: 'cond', label: 'Conditionnel' }
         ];
 
         const PERSONS = [
@@ -101,11 +94,9 @@
             { label: 'Nous', index: 3 }, { label: 'Vous', index: 4 }, { label: 'Ils / Elles', index: 5 }
         ];
 
-        // --- COMPONENTS ---
+        // --- MAIN APP ---
         function App() {
-            const [view, setView] = useState('index'); // 'index', 'quiz', 'game'
-            
-            // Practice State
+            const [view, setView] = useState('index');
             const [currentVerbIdx, setCurrentVerbIdx] = useState(0);
             const [currentTenseIdx, setCurrentTenseIdx] = useState(0);
             const [answers, setAnswers] = useState({});
@@ -117,9 +108,8 @@
             const [gameLives, setGameLives] = useState(3);
             const [gameChallenge, setGameChallenge] = useState(null);
             const [gameInput, setGameInput] = useState('');
-            const [gameFeedback, setGameFeedback] = useState(null); // 'correct' or 'wrong'
+            const [gameFeedback, setGameFeedback] = useState(null);
 
-            // Utils
             const getRandomChallenge = () => {
                 let v, t, p, answer;
                 do {
@@ -128,72 +118,58 @@
                     p = Math.floor(Math.random() * PERSONS.length);
                     answer = VERBS_DATA[v].conjugations[TENSES[t].id][p];
                 } while (answer === "-");
-                
                 return { verbIdx: v, tenseIdx: t, personIdx: p, answer: answer };
             };
 
             const startGame = () => {
-                setGameScore(0);
-                setGameLives(3);
-                setGameChallenge(getRandomChallenge());
-                setGameInput('');
-                setGameFeedback(null);
-                setView('game');
+                setGameScore(0); setGameLives(3); setGameChallenge(getRandomChallenge());
+                setGameInput(''); setGameFeedback(null); setView('game');
             };
 
             const submitGameAnswer = () => {
                 if (!gameChallenge || gameFeedback) return;
                 const isCorrect = gameInput.trim().toLowerCase() === gameChallenge.answer.toLowerCase();
-                
                 if (isCorrect) {
-                    setGameFeedback('correct');
-                    setGameScore(s => s + 1);
+                    setGameFeedback('correct'); setGameScore(s => s + 1);
                     setTimeout(() => {
-                        setGameChallenge(getRandomChallenge());
-                        setGameInput('');
-                        setGameFeedback(null);
+                        setGameChallenge(getRandomChallenge()); setGameInput(''); setGameFeedback(null);
                     }, 800);
                 } else {
-                    setGameFeedback('wrong');
-                    setGameLives(l => l - 1);
+                    setGameFeedback('wrong'); setGameLives(l => l - 1);
                 }
             };
 
-            const nextGameQuestion = () => {
-                setGameChallenge(getRandomChallenge());
-                setGameInput('');
-                setGameFeedback(null);
+            const handleNext = () => {
+                if (currentTenseIdx < TENSES.length - 1) setCurrentTenseIdx(prev => prev + 1);
+                else if (currentVerbIdx < VERBS_DATA.length - 1) {
+                    setCurrentVerbIdx(prev => prev + 1); setCurrentTenseIdx(0);
+                } else setView('index');
             };
 
             useEffect(() => { setShowAllCorrect(false); }, [currentVerbIdx, currentTenseIdx, view]);
 
-            // --- RENDER: HOME ---
+            // --- RENDER INDEX ---
             if (view === 'index') {
                 return (
                     <div className="min-h-screen p-6 animate-fade-in">
                         <div className="max-w-6xl mx-auto">
                             <header className="mb-12 text-center">
                                 <h1 className="text-5xl font-black text-indigo-900 mb-4 tracking-tight">La Matrice des Verbes</h1>
-                                <p className="text-slate-500 text-lg mb-8 italic">Maîtrisez la conjugaison par la pratique ou le jeu.</p>
                                 <button onClick={startGame} className="px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-2xl shadow-xl hover:bg-indigo-700 transition-all flex items-center gap-3 mx-auto">
-                                    <IconTrophy /> MODE DÉFI (JEU)
+                                    <IconTrophy /> MODE DÉFI
                                 </button>
                             </header>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {VERBS_DATA.map((verb, vIdx) => (
-                                    <div key={vIdx} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <h3 className="text-xl font-black text-slate-900">{verb.inf.toUpperCase()}</h3>
-                                                <p className="text-xs text-slate-400 font-bold uppercase italic">{verb.tr}</p>
-                                            </div>
-                                            <div className="bg-indigo-50 text-indigo-600 p-2 rounded-xl"><IconBook /></div>
+                                    <div key={vIdx} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div><h3 className="font-black text-slate-900">{verb.inf.toUpperCase()}</h3><p className="text-[10px] text-slate-400 italic uppercase">{verb.tr}</p></div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-3 gap-1">
                                             {TENSES.map((tense, tIdx) => (
                                                 <button key={tIdx} onClick={() => { setCurrentVerbIdx(vIdx); setCurrentTenseIdx(tIdx); setView('quiz'); }}
-                                                    className={`text-[10px] p-2 rounded-xl font-black uppercase tracking-wider transition-all flex items-center justify-between ${checked[`${vIdx}-${tIdx}`] ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-50 text-slate-600 border border-transparent hover:border-indigo-200'}`}>
-                                                    {tense.label} {checked[`${vIdx}-${tIdx}`] && <IconCheck size={12} strokeWidth={4} className="text-emerald-500" />}
+                                                    className={`text-[9px] p-2 rounded-lg font-black uppercase tracking-tighter transition-all ${checked[`${vIdx}-${tIdx}`] ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'}`}>
+                                                    {tense.label}
                                                 </button>
                                             ))}
                                         </div>
@@ -205,52 +181,57 @@
                 );
             }
 
-            // --- RENDER: GAME MODE ---
+            // --- RENDER GAME MODE ---
             if (view === 'game') {
                 const isGameOver = gameLives <= 0;
-                const verb = isGameOver ? null : VERBS_DATA[gameChallenge.verbIdx];
-                const tense = isGameOver ? null : TENSES[gameChallenge.tenseIdx];
-                const person = isGameOver ? null : PERSONS[gameChallenge.personIdx];
-
                 return (
-                    <div className="min-h-screen p-4 flex items-center justify-center animate-fade-in">
-                        <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
-                            <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
-                                <button onClick={() => setView('index')} className="text-slate-400 hover:text-white"><IconHome /></button>
-                                <div className="flex items-center gap-1">
-                                    {[...Array(3)].map((_, i) => <IconHeart key={i} filled={i < gameLives} />)}
-                                </div>
-                                <div className="font-black text-xl text-emerald-400">{gameScore} PTS</div>
-                            </div>
+                    <div className="min-h-screen p-4 flex flex-col items-center animate-fade-in">
+                        <div className="w-full max-w-md flex justify-between items-center mb-6 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+                            <button onClick={() => setView('index')} className="p-2 bg-slate-50 rounded-xl"><IconHome /></button>
+                            <div className="flex gap-1">{[...Array(3)].map((_, i) => <IconHeart key={i} filled={i < gameLives} />)}</div>
+                            <div className="font-black text-emerald-500 text-xl">{gameScore} <span className="text-[10px] text-slate-400">PTS</span></div>
+                        </div>
+
+                        <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
                             {isGameOver ? (
                                 <div className="p-12 text-center">
                                     <div className="mb-6 inline-block p-6 bg-rose-50 text-rose-500 rounded-full"><IconX size={64} /></div>
-                                    <h2 className="text-4xl font-black text-slate-900 mb-2">PERDU !</h2>
+                                    <h2 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter">FIN DE PARTIE</h2>
                                     <p className="text-slate-500 font-bold mb-8 text-xl">Score Final : {gameScore}</p>
                                     <button onClick={startGame} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl">REJOUER</button>
                                 </div>
                             ) : (
-                                <div className="p-8 text-center">
-                                    <div className="text-sm font-black text-indigo-600 uppercase tracking-widest">{tense.label}</div>
-                                    <h2 className="text-5xl font-black text-slate-900 mb-2">{verb.inf.toUpperCase()}</h2>
-                                    <p className="text-slate-400 font-medium italic mb-10">{verb.tr}</p>
-                                    <div className="mb-8">
-                                        <div className="text-left text-xs font-black text-slate-400 uppercase mb-2 ml-2">Sujet : {person.label}</div>
-                                        <input autoFocus type="text" value={gameInput} onChange={(e) => setGameInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitGameAnswer()} disabled={gameFeedback === 'wrong'}
-                                            className={`w-full p-6 text-2xl font-black text-center rounded-3xl border-4 outline-none ${gameFeedback === 'correct' ? 'border-emerald-400 bg-emerald-50' : gameFeedback === 'wrong' ? 'border-rose-400 bg-rose-50' : 'border-slate-100 focus:border-indigo-500'}`} placeholder="..." />
-                                        {gameFeedback && (
-                                            <div className="mt-4">
-                                                {gameFeedback === 'correct' ? <div className="text-emerald-500 font-black">Bravo !</div> : (
-                                                    <div>
-                                                        <div className="text-rose-500 font-black mb-2">Faux !</div>
-                                                        <div className="p-4 bg-indigo-50 text-indigo-700 rounded-2xl font-bold mb-4">Solution : {gameChallenge.answer}</div>
-                                                        <button onClick={nextGameQuestion} className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold">CONTINUER</button>
-                                                    </div>
-                                                )}
+                                <div className="p-8 text-center flex flex-col items-center">
+                                    {/* Question Area (Now Down near input) */}
+                                    <div className="bg-indigo-50 w-full p-6 rounded-[2rem] mb-6 animate-fade-in border-2 border-indigo-100">
+                                        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">{TENSES[gameChallenge.tenseIdx].label}</div>
+                                        <h2 className="text-4xl font-black text-indigo-900 mb-1">{VERBS_DATA[gameChallenge.verbIdx].inf.toUpperCase()}</h2>
+                                        <p className="text-slate-400 text-xs italic mb-4">{VERBS_DATA[gameChallenge.verbIdx].tr}</p>
+                                        <div className="text-indigo-600 font-black text-2xl uppercase tracking-tighter">{PERSONS[gameChallenge.personIdx].label} ...</div>
+                                    </div>
+
+                                    {/* Input Area */}
+                                    <div className="w-full relative">
+                                        <input 
+                                            autoFocus 
+                                            type="text" 
+                                            value={gameInput} 
+                                            onChange={(e) => setGameInput(e.target.value)} 
+                                            onKeyDown={(e) => e.key === 'Enter' && submitGameAnswer()} 
+                                            disabled={gameFeedback === 'wrong'} 
+                                            className={`w-full p-6 text-2xl font-black text-center rounded-3xl border-4 outline-none transition-all 
+                                                ${gameFeedback === 'correct' ? 'border-emerald-400 bg-emerald-50' : 
+                                                  gameFeedback === 'wrong' ? 'border-rose-400 bg-rose-50' : 'border-slate-100 focus:border-indigo-500'}`} 
+                                            placeholder="..." 
+                                        />
+                                        {gameFeedback === 'wrong' && (
+                                            <div className="mt-4 animate-fade-in">
+                                                <div className="p-4 bg-indigo-100 text-indigo-700 rounded-2xl font-black mb-4">La réponse : {gameChallenge.answer}</div>
+                                                <button onClick={() => {setGameChallenge(getRandomChallenge()); setGameInput(''); setGameFeedback(null);}} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold">CONTINUER</button>
                                             </div>
                                         )}
+                                        {!gameFeedback && <button onClick={submitGameAnswer} className="w-full mt-4 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg">VÉRIFIER</button>}
                                     </div>
-                                    {!gameFeedback && <button onClick={submitGameAnswer} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg">VÉRIFIER</button>}
                                 </div>
                             )}
                         </div>
@@ -258,46 +239,50 @@
                 );
             }
 
-            // --- RENDER: PRACTICE ---
+            // --- RENDER PRACTICE ---
             return (
-                <div className="min-h-screen p-4 md:p-8 animate-fade-in">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="mb-6 flex items-center justify-between">
-                            <button onClick={() => setView('index')} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-600 font-bold"><IconHome /> Menu</button>
+                <div className="min-h-screen p-4 flex flex-col items-center animate-fade-in">
+                    <div className="w-full max-w-4xl flex justify-between items-center mb-6">
+                        <button onClick={() => setView('index')} className="p-3 bg-white rounded-xl shadow-sm border border-slate-100"><IconHome /></button>
+                        <div className="text-xs font-black text-slate-400 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100">{currentVerbIdx + 1} / {VERBS_DATA.length}</div>
+                    </div>
+
+                    <div className="w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+                        <div className="p-8 bg-indigo-600 text-white text-center">
+                            <h1 className="text-4xl font-black mb-1">{VERBS_DATA[currentVerbIdx].inf.toUpperCase()}</h1>
+                            <p className="text-indigo-100 text-sm opacity-80 italic mb-4">{VERBS_DATA[currentVerbIdx].tr}</p>
+                            <div className="bg-white/10 px-6 py-2 rounded-full border border-white/10 font-black text-xs uppercase">{TENSES[currentTenseIdx].label}</div>
                         </div>
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
-                            <div className="p-8 bg-indigo-600 text-white text-center">
-                                <h1 className="text-4xl font-black mb-1">{VERBS_DATA[currentVerbIdx].inf.toUpperCase()}</h1>
-                                <p className="text-indigo-100 text-lg opacity-80 italic">{VERBS_DATA[currentVerbIdx].tr}</p>
-                                <div className="mt-6 inline-block bg-white/10 px-6 py-2 rounded-full border border-white/10 font-black text-sm uppercase">{TENSES[currentTenseIdx].label}</div>
-                            </div>
-                            <div className="p-8 md:p-12">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                                    {PERSONS.map((person) => {
-                                        const key = `${currentVerbIdx}-${currentTenseIdx}-${person.index}`;
-                                        const correctVal = VERBS_DATA[currentVerbIdx].conjugations[TENSES[currentTenseIdx].id][person.index].toLowerCase();
-                                        const isCorrect = (answers[key] || "").trim().toLowerCase() === correctVal;
-                                        if (correctVal === "-") return <div key={person.index} className="opacity-20"><label className="text-[10px] font-black uppercase">{person.label}</label><div className="p-4 bg-slate-100 rounded-2xl text-center">-</div></div>;
-                                        return (
-                                            <div key={person.index} className="flex flex-col gap-2">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase">{person.label}</label>
-                                                <div className="relative">
-                                                    <input type="text" value={showAllCorrect ? correctVal : (answers[key] || "")} onChange={(e) => setAnswers(p => ({...p, [key]: e.target.value}))} disabled={checked[`${currentVerbIdx}-${currentTenseIdx}`]} className={`w-full p-4 rounded-2xl border-2 outline-none ${!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? 'border-slate-100 focus:border-indigo-500' : (isCorrect || showAllCorrect) ? 'border-emerald-200 bg-emerald-50' : 'border-rose-100 bg-rose-50'}`} />
-                                                    {checked[`${currentVerbIdx}-${currentTenseIdx}`] && <div className="absolute right-4 top-1/2 -translate-y-1/2">{(isCorrect || showAllCorrect) ? <IconCheck size={24} className="text-emerald-500" /> : <IconX size={24} className="text-rose-400" />}</div>}
-                                                </div>
-                                                {checked[`${currentVerbIdx}-${currentTenseIdx}`] && !isCorrect && !showAllCorrect && <div className="mt-1 text-xs font-black text-indigo-600">La réponse: {correctVal}</div>}
+
+                        <div className="p-6 md:p-12">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                {PERSONS.map((person) => {
+                                    const key = `${currentVerbIdx}-${currentTenseIdx}-${person.index}`;
+                                    const correctVal = VERBS_DATA[currentVerbIdx].conjugations[TENSES[currentTenseIdx].id][person.index].toLowerCase();
+                                    const isCorrect = (answers[key] || "").trim().toLowerCase() === correctVal;
+                                    if (correctVal === "-") return <div key={person.index} className="opacity-20 p-4 bg-slate-50 rounded-2xl text-center">-</div>;
+                                    return (
+                                        <div key={person.index} className="flex flex-col gap-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase ml-2">{person.label}</label>
+                                            <div className="relative">
+                                                <input type="text" value={showAllCorrect ? correctVal : (answers[key] || "")} onChange={(e) => setAnswers(p => ({...p, [key]: e.target.value}))} disabled={checked[`${currentVerbIdx}-${currentTenseIdx}`]} 
+                                                    className={`w-full p-4 rounded-2xl border-2 outline-none ${!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? 'border-slate-100 focus:border-indigo-500' : (isCorrect || showAllCorrect) ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-100 bg-rose-50 text-rose-800'}`} />
+                                                {checked[`${currentVerbIdx}-${currentTenseIdx}`] && <div className="absolute right-4 top-1/2 -translate-y-1/2">{(isCorrect || showAllCorrect) ? <IconCheck size={20} className="text-emerald-500" /> : <IconX size={20} className="text-rose-400" />}</div>}
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                                <div className="mt-12 flex justify-between items-center">
-                                    <button onClick={() => { if (currentTenseIdx > 0) setCurrentTenseIdx(p => p - 1); else if (currentVerbIdx > 0) { setCurrentVerbIdx(v => v - 1); setCurrentTenseIdx(TENSES.length - 1); } }} className="text-slate-400 font-black flex items-center gap-2"><IconChevronLeft /> Précédent</button>
-                                    {!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? (
-                                        <div className="flex gap-4">
-                                            <button onClick={() => setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}))} className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl">Vérifier</button>
-                                            <button onClick={() => {setShowAllCorrect(true); setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}));}} className="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-sm">Solutions</button>
                                         </div>
-                                    ) : <button onClick={handleNext} className="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-xl flex items-center gap-3">Continuer <IconArrowRight /></button>}
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-12 flex flex-col md:flex-row justify-between gap-4">
+                                <button onClick={() => { if (currentTenseIdx > 0) setCurrentTenseIdx(p => p - 1); else if (currentVerbIdx > 0) { setCurrentVerbIdx(v => v - 1); setCurrentTenseIdx(TENSES.length - 1); } }} className="text-slate-400 font-black flex items-center gap-2">Précédent</button>
+                                <div className="flex gap-2">
+                                    {!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? (
+                                        <>
+                                            <button onClick={() => setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}))} className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Vérifier</button>
+                                            <button onClick={() => {setShowAllCorrect(true); setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}));}} className="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">Solutions</button>
+                                        </>
+                                    ) : <button onClick={handleNext} className="px-12 py-4 bg-emerald-600 text-white rounded-2xl font-black shadow-lg flex items-center gap-3">Continuer <IconArrowRight /></button>}
                                 </div>
                             </div>
                         </div>
