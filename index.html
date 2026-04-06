@@ -1,110 +1,4 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fransızca Fiil Matrisi - 50 Temel Fiil</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useMemo } = React;
-
-        // İkonlar ve Sabitler
-        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-        const IconBook = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-0.5-5.12"/><path d="M4 19.5h16"/></svg>;
-        const IconCheck = ({ size = 24, strokeWidth = 2, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>;
-        const IconX = ({ size = 24, strokeWidth = 2, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
-        const IconChevronLeft = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
-        const IconArrowRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
-        const IconInfo = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>;
-        const IconEye = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
-
-        // VERİ SETİ (50 FİİL)
-        const RAW_VERBS_DATA = [
-            { tr: "Satın Almak", inf: "acheter", conjugations: { pres: ["achète", "achètes", "achète", "achetons", "achetez", "achètent"], pc: ["ai acheté", "as acheté", "a acheté", "avons acheté", "avez acheté", "ont acheté"], imp: ["achetais", "achetais", "achetait", "achetions", "achetiez", "achetaient"], fut: ["achèterai", "achèteras", "achètera", "achèterons", "achèterez", "achèteront"], subj: ["achète", "achètes", "achète", "achetions", "achetiez", "achètent"], cond: ["achèterais", "achèterais", "achèterait", "achèterions", "achèteriez", "achèteraient"] } },
-            { tr: "Sevmek", inf: "aimer", conjugations: { pres: ["aime", "aimes", "aime", "aimons", "aimez", "aiment"], pc: ["ai aimé", "as aimé", "a aimé", "avons aimé", "avez aimé", "ont aimé"], imp: ["aimais", "aimais", "aimait", "aimions", "aimiez", "aimaient"], fut: ["aimerai", "aimeras", "aimera", "aimerons", "aimerez", "aimeront"], subj: ["aime", "aimes", "aime", "aimions", "aimiez", "aiment"], cond: ["aimerais", "aimerais", "aimerait", "aimerions", "aimeriez", "aimeraient"] } },
-            { tr: "Gitmek", inf: "aller", conjugations: { pres: ["vais", "vas", "va", "allons", "allez", "vont"], pc: ["suis allé", "es allé", "est allé", "sommes allés", "êtes allés", "sont allés"], imp: ["allais", "allais", "allait", "allions", "alliez", "allaient"], fut: ["irai", "iras", "ira", "irons", "irez", "iront"], subj: ["aille", "ailles", "aille", "allions", "alliez", "aillent"], cond: ["irais", "irais", "irait", "irions", "iriez", "iraient"] } },
-            { tr: "Aramak / Çağırmak", inf: "appeler", conjugations: { pres: ["appelle", "appelles", "appelle", "appelons", "appelez", "appellent"], pc: ["ai appelé", "as appelé", "a appelé", "avons appelé", "avez appelé", "ont appelé"], imp: ["appelais", "appelais", "appelait", "appelions", "appeliez", "appelaient"], fut: ["appellerai", "appelleras", "appellera", "appellerons", "appellerez", "appelleront"], subj: ["appelle", "appelles", "appelle", "appelions", "appeliez", "appellent"], cond: ["appellerais", "appellerais", "appellerait", "appellerions", "appelleriez", "appelleraient"] } },
-            { tr: "Öğrenmek", inf: "apprendre", conjugations: { pres: ["apprends", "apprends", "apprend", "apprenons", "apprenez", "apprennent"], pc: ["ai appris", "as appris", "a appris", "avons appris", "avez appris", "ont appris"], imp: ["apprenais", "apprenais", "apprenait", "apprenions", "appreniez", "apprenaient"], fut: ["apprendrai", "apprendras", "apprendra", "apprendrons", "apprendrez", "apprendront"], subj: ["apprenne", "apprennes", "apprenne", "apprenions", "appreniez", "apprennent"], cond: ["apprendrais", "apprendrais", "apprendrait", "apprendrions", "apprendriez", "apprendraient"] } },
-            { tr: "Varmak / Gelmek", inf: "arriver", conjugations: { pres: ["arrive", "arrives", "arrive", "arrivons", "arrivez", "arrivent"], pc: ["suis arrivé", "es arrivé", "est arrivé", "sommes arrivés", "êtes arrivés", "sont arrivés"], imp: ["arrivais", "arrivais", "arrivait", "arrivions", "arriviez", "arrivaient"], fut: ["arriverai", "arriveras", "arrivera", "arriverons", "arriverez", "arriveront"], subj: ["arrive", "arrives", "arrive", "arrivions", "arriviez", "arrivent"], cond: ["arriverais", "arriverais", "arriverait", "arriverions", "arriveriez", "arriveraient"] } },
-            { tr: "Beklemek", inf: "attendre", conjugations: { pres: ["attends", "attends", "attend", "attendons", "attendez", "attendent"], pc: ["ai attendu", "as attendu", "a attendu", "avons attendu", "avez attendu", "ont attendu"], imp: ["attendais", "attendais", "attendait", "attendions", "attendiez", "attendaient"], fut: ["attendrai", "attendras", "attendra", "attendrons", "attendrez", "attendront"], subj: ["attende", "attendes", "attende", "attendions", "attendiez", "attendent"], cond: ["attendrais", "attendrais", "attendrait", "attendrions", "attendriez", "attendraient"] } },
-            { tr: "Sahip Olmak", inf: "avoir", conjugations: { pres: ["ai", "as", "a", "avons", "avez", "ont"], pc: ["ai eu", "as eu", "a eu", "avons eu", "avez eu", "ont eu"], imp: ["avais", "avais", "avait", "avions", "aviez", "avaient"], fut: ["aurai", "auras", "aura", "aurons", "aurez", "auront"], subj: ["aie", "aies", "ait", "ayons", "ayez", "aient"], cond: ["aurais", "aurais", "aurait", "aurions", "auriez", "auraient"] } },
-            { tr: "Aramak", inf: "chercher", conjugations: { pres: ["cherche", "cherches", "cherche", "cherchons", "cherchez", "cherchent"], pc: ["ai cherché", "as cherché", "a cherché", "avons cherché", "avez cherché", "ont cherché"], imp: ["cherchais", "cherchais", "cherchait", "cherchions", "cherchiez", "cherchaient"], fut: ["chercherai", "chercheras", "cherchera", "chercherons", "chercherez", "chercheront"], subj: ["cherche", "cherches", "cherche", "cherchions", "cherchiez", "cherchent"], cond: ["chercherais", "chercherais", "chercherait", "chercherions", "chercheriez", "chercheraient"] } },
-            { tr: "Başlamak", inf: "commencer", conjugations: { pres: ["commence", "commences", "commence", "commençons", "commencez", "commencent"], pc: ["ai commencé", "as commencé", "a commencé", "avons commencé", "avez commencé", "ont commencé"], imp: ["commençais", "commençais", "commençait", "commencions", "commenciez", "commençaient"], fut: ["commencerai", "commenceras", "commencera", "commencerons", "commencerez", "commenceront"], subj: ["commence", "commences", "commence", "commencions", "commenciez", "commencent"], cond: ["commencerais", "commencerais", "commencerait", "commencerions", "commenceriez", "commenceraient"] } },
-            { tr: "Anlamak", inf: "comprendre", conjugations: { pres: ["comprends", "comprends", "comprend", "comprenons", "comprenez", "comprennent"], pc: ["ai compris", "as compris", "a compris", "avons compris", "avez compris", "ont compris"], imp: ["comprenais", "comprenais", "comprenait", "comprenions", "compreniez", "comprenaient"], fut: ["comprendrai", "comprendras", "comprendra", "comprendrons", "comprendrez", "comprendront"], subj: ["comprenne", "comprennes", "comprenne", "comprenions", "compreniez", "comprennent"], cond: ["comprendrais", "comprendrais", "comprendrait", "comprendrions", "comprendriez", "comprendraient"] } },
-            { tr: "Tanımak / Bilmek", inf: "connaître", conjugations: { pres: ["connais", "connais", "connaît", "connaissons", "connaissez", "connaissent"], pc: ["ai connu", "as connu", "a connu", "avons connu", "avez connu", "ont connu"], imp: ["connaissais", "connaissais", "connaissait", "connaissions", "connaissiez", "connaissaient"], fut: ["connaîtrai", "connaîtras", "connaîtra", "connaîtrons", "connaîtrez", "connaîtront"], subj: ["connaisse", "connaisses", "connaisse", "connaissions", "connaissiez", "connaissent"], cond: ["connaîtrais", "connaîtrais", "connaîtrait", "connaîtrions", "connaîtriez", "connaîtraient"] } },
-            { tr: "İnanmak", inf: "croire", conjugations: { pres: ["crois", "crois", "croit", "croyons", "croyez", "croient"], pc: ["ai cru", "as cru", "a cru", "avons cru", "avez cru", "ont cru"], imp: ["croyais", "croyais", "croyait", "croyions", "croyiez", "croyaient"], fut: ["croirai", "croiras", "croira", "croirons", "croirez", "croiront"], subj: ["croie", "croies", "croie", "croyions", "croyiez", "croient"], cond: ["croirais", "croirais", "croirait", "croirions", "croiriez", "croiraient"] } },
-            { tr: "Sormak / İstemek", inf: "demander", conjugations: { pres: ["demande", "demandes", "demande", "demandons", "demandez", "demandent"], pc: ["ai demandé", "as demandé", "a demandé", "avons demandé", "avez demandé", "ont demandé"], imp: ["demandais", "demandais", "demandait", "demandions", "demandiez", "demandaient"], fut: ["demanderai", "demanderas", "demandera", "demanderons", "demanderez", "demanderont"], subj: ["demande", "demandes", "demande", "demandions", "demandiez", "demandent"], cond: ["demanderais", "demanderais", "demanderait", "demanderions", "demanderiez", "demanderaient"] } },
-            { tr: "Zorunda Olmak", inf: "devoir", conjugations: { pres: ["dois", "dois", "doit", "devons", "devez", "doivent"], pc: ["ai dû", "as dû", "a dû", "avons dû", "avez dû", "ont dû"], imp: ["devais", "devais", "devait", "devions", "deviez", "devaient"], fut: ["devrai", "devras", "devra", "devrons", "devrez", "devront"], subj: ["doive", "doives", "doive", "devions", "deviez", "doivent"], cond: ["devrais", "devrais", "devrait", "devrions", "devriez", "devraient"] } },
-            { tr: "Söylemek", inf: "dire", conjugations: { pres: ["dis", "dis", "dit", "disons", "dites", "disent"], pc: ["ai dit", "as dit", "a dit", "avons dit", "avez dit", "ont dit"], imp: ["disais", "disais", "disait", "disions", "disiez", "disaient"], fut: ["dirai", "diras", "dira", "dirons", "direz", "diront"], subj: ["dise", "dises", "dise", "disions", "disiez", "disent"], cond: ["dirais", "dirais", "dirait", "dirions", "diriez", "diraient"] } },
-            { tr: "Vermek", inf: "donner", conjugations: { pres: ["donne", "donnes", "donne", "donnons", "donnez", "donnent"], pc: ["ai donné", "as donné", "a donné", "avons donné", "avez donné", "ont donné"], imp: ["donnais", "donnais", "donnait", "donnions", "donniez", "donnaient"], fut: ["donnerai", "donneras", "donnera", "donnerons", "donnerez", "donneront"], subj: ["donne", "donnes", "donne", "donnions", "donniez", "donnent"], cond: ["donnerais", "donnerais", "donnerait", "donnerions", "donneriez", "donneraient"] } },
-            { tr: "Dinlemek", inf: "écouter", conjugations: { pres: ["écoute", "écoutes", "écoute", "écoutons", "écoutez", "écoutent"], pc: ["ai écouté", "as écouté", "a écouté", "avons écouté", "avez écouté", "ont écouté"], imp: ["écoutais", "écoutais", "écoutait", "écoutions", "écoutiez", "écoutaient"], fut: ["écouterai", "écouteras", "écoutera", "écouterons", "écouterez", "écouteront"], subj: ["écoute", "écoutes", "écoute", "écoutions", "écoutiez", "écoutent"], cond: ["écouterais", "écouterais", "écouterait", "écouterions", "écouteriez", "écouteraient"] } },
-            { tr: "Yazmak", inf: "écrire", conjugations: { pres: ["écris", "écris", "écrit", "écrivons", "écrivez", "écrivent"], pc: ["ai écrit", "as écrit", "a écrit", "avons écrit", "avez écrit", "ont écrit"], imp: ["écrivais", "écrivais", "écrivait", "écrivions", "écriviez", "écrivaient"], fut: ["écrirai", "écriras", "écrira", "écrirons", "écrirez", "écriront"], subj: ["écrive", "écrives", "écrive", "écrivions", "écriviez", "écrivent"], cond: ["écrirais", "écrirais", "écrirait", "écririons", "écririez", "écriraient"] } },
-            { tr: "Duymak", inf: "entendre", conjugations: { pres: ["entends", "entends", "entend", "entendons", "entendez", "entendent"], pc: ["ai entendu", "as entendu", "a entendu", "avons entendu", "avez entendu", "ont entendu"], imp: ["entendais", "entendais", "entendait", "entendions", "entendiez", "entendaient"], fut: ["entendrai", "entendras", "entendra", "entendrons", "entendrez", "entendront"], subj: ["entende", "entendes", "entende", "entendions", "entendiez", "entendent"], cond: ["entendrais", "entendrais", "entendrait", "entendrions", "entendriez", "entendraient"] } },
-            { tr: "Olmak", inf: "être", conjugations: { pres: ["suis", "es", "est", "sommes", "êtes", "sont"], pc: ["ai été", "as été", "a été", "avons été", "avez été", "ont été"], imp: ["étais", "étais", "était", "étions", "étiez", "étaient"], fut: ["serai", "seras", "sera", "serons", "serez", "seront"], subj: ["sois", "sois", "soit", "soyons", "soyez", "soient"], cond: ["serais", "serais", "serait", "serions", "seriez", "seraient"] } },
-            { tr: "Yapmak", inf: "faire", conjugations: { pres: ["fais", "fais", "fait", "faisons", "faites", "font"], pc: ["ai fait", "as fait", "a fait", "avons fait", "avez fait", "ont fait"], imp: ["faisais", "faisais", "faisait", "faisions", "faisiez", "faisaient"], fut: ["ferai", "feras", "fera", "ferons", "ferez", "feront"], subj: ["fasse", "fasses", "fasse", "fassions", "fassiez", "fassent"], cond: ["ferais", "ferais", "ferait", "ferions", "feriez", "feraient"] } },
-            { tr: "Gerekmek", inf: "falloir", conjugations: { pres: ["-", "-", "faut", "-", "-", "-"], pc: ["-", "-", "a fallu", "-", "-", "-"], imp: ["-", "-", "fallait", "-", "-", "-"], fut: ["-", "-", "faudra", "-", "-", "-"], subj: ["-", "-", "faille", "-", "-", "-"], cond: ["-", "-", "faudrait", "-", "-", "-"] } },
-            { tr: "Bırakmak", inf: "laisser", conjugations: { pres: ["laisse", "laisses", "laisse", "laissons", "laissez", "laissent"], pc: ["ai laissé", "as laissé", "a laissé", "avons laissé", "avez laissé", "ont laissé"], imp: ["laissais", "laissais", "laissait", "laissions", "laissiez", "laissaient"], fut: ["laisserai", "laisseras", "laissera", "laisserons", "laisserez", "laisseront"], subj: ["laisse", "laisses", "laisse", "laissions", "laissiez", "laissent"], cond: ["laisserais", "laisserais", "laisserait", "laisserions", "laisseriez", "laisseraient"] } },
-            { tr: "Yemek", inf: "manger", conjugations: { pres: ["mange", "manges", "mange", "mangeons", "mangez", "mangent"], pc: ["ai mangé", "as mangé", "a mangé", "avons mangé", "avez mangé", "ont mangé"], imp: ["mangeais", "mangeais", "mangeait", "mangions", "mangiez", "mangeaient"], fut: ["mangerai", "mangeras", "mangera", "mangerons", "mangerez", "mangeront"], subj: ["mange", "manges", "mange", "mangions", "mangiez", "mangent"], cond: ["mangerais", "mangerais", "mangerait", "mangerions", "mangeriez", "mangeraient"] } },
-            { tr: "Koymak", inf: "mettre", conjugations: { pres: ["mets", "mets", "met", "mettons", "mettez", "mettent"], pc: ["ai mis", "as mis", "a mis", "avons mis", "avez mis", "ont mis"], imp: ["mettais", "mettais", "mettait", "mettions", "mettiez", "mettaient"], fut: ["mettrai", "mettras", "mettra", "mettrons", "mettrez", "mettront"], subj: ["mette", "mettes", "mette", "mettions", "mettiez", "mettent"], cond: ["mettrais", "mettrais", "mettrait", "mettrions", "mettriez", "mettraient"] } },
-            { tr: "Göstermek", inf: "montrer", conjugations: { pres: ["montre", "montres", "montre", "montrons", "montrez", "montrent"], pc: ["ai montré", "as montré", "a montré", "avons montré", "avez montré", "ont montré"], imp: ["montrais", "montrais", "montrait", "montrions", "montriez", "montraient"], fut: ["montrerai", "montreras", "montrera", "montrerons", "montrerez", "montreront"], subj: ["montre", "montres", "montre", "montrions", "montriez", "montrent"], cond: ["montrerais", "montrerais", "montrerait", "montrerions", "montreriez", "montreraient"] } },
-            { tr: "Gözükmek / Benzemek", inf: "paraître", conjugations: { pres: ["parais", "parais", "paraît", "paraissons", "paraissez", "paraissent"], pc: ["ai paru", "as paru", "a paru", "avons paru", "avez paru", "ont paru"], imp: ["paraissais", "paraissais", "paraissait", "paraissions", "paraissiez", "paraissaient"], fut: ["paraîtrai", "paraîtras", "paraîtra", "paraîtrons", "paraîtrez", "paraîtront"], subj: ["paraisse", "paraisses", "paraisse", "paraissions", "paraissiez", "paraissent"], cond: ["paraîtrais", "paraîtrais", "paraîtrait", "paraîtrions", "paraîtriez", "paraîtraient"] } },
-            { tr: "Konuşmak", inf: "parler", conjugations: { pres: ["parle", "parles", "parle", "parlons", "parlez", "parlent"], pc: ["ai parlé", "as parlé", "a parlé", "avons parlé", "avez parlé", "ont parlé"], imp: ["parlais", "parlais", "parlait", "parlions", "parliez", "parlaient"], fut: ["parlerai", "parleras", "parlera", "parlerons", "parlerez", "parleront"], subj: ["parle", "parles", "parle", "parlions", "parliez", "parlent"], cond: ["parlerais", "parlerais", "parlerait", "parlerions", "parleriez", "parleraient"] } },
-            { tr: "Ayrılmak / Gitmek", inf: "partir", conjugations: { pres: ["pars", "pars", "part", "partons", "partez", "partent"], pc: ["suis parti", "es parti", "est parti", "sommes partis", "êtes partis", "sont partis"], imp: ["partais", "partais", "partait", "partions", "partiez", "partaient"], fut: ["partirai", "partiras", "partira", "partirons", "partirez", "partiront"], subj: ["partie", "parties", "partie", "partions", "partiez", "partent"], cond: ["partirais", "partirais", "partirait", "partirions", "partiriez", "partiraient"] } },
-            { tr: "Geçmek / Harcamak", inf: "passer", conjugations: { pres: ["passe", "passes", "passe", "passons", "passez", "passent"], pc: ["suis passé", "es passé", "est passé", "sommes passés", "êtes passés", "sont passés"], imp: ["passais", "passais", "passait", "passions", "passiez", "passaient"], fut: ["passerai", "passeras", "passera", "passerons", "passerez", "passeront"], subj: ["passe", "passes", "passe", "passions", "passiez", "passent"], cond: ["passerais", "passerais", "passerait", "passerions", "passeriez", "passeraient"] } },
-            { tr: "Ödemek", inf: "payer", conjugations: { pres: ["paye", "payes", "paye", "payons", "payez", "payent"], pc: ["ai payé", "as payé", "a payé", "avons payé", "avez payé", "ont payé"], imp: ["payais", "payais", "payait", "payions", "payiez", "payaient"], fut: ["payerai", "payeras", "payera", "payerons", "payerez", "payeront"], subj: ["paye", "payes", "paye", "payions", "payiez", "payent"], cond: ["payerais", "payerais", "payerait", "payerions", "payeriez", "payeraient"] } },
-            { tr: "Düşünmek", inf: "penser", conjugations: { pres: ["pense", "penses", "pense", "pensons", "pensez", "pensent"], pc: ["ai pensé", "as pensé", "a pensé", "avons pensé", "avez pensé", "ont pensé"], imp: ["pensais", "pensais", "pensait", "pensions", "pensiez", "pensaient"], fut: ["penserai", "penseras", "pensera", "penserons", "penserez", "penseront"], subj: ["pense", "penses", "pense", "pensions", "pensiez", "pensent"], cond: ["penserais", "penserais", "penserait", "penserions", "penseriez", "penseraient"] } },
-            { tr: "Kaybetmek", inf: "perdre", conjugations: { pres: ["perds", "perds", "perd", "perdons", "perdez", "perdent"], pc: ["ai perdu", "as perdu", "a perdu", "avons perdu", "avez perdu", "ont perdu"], imp: ["perdais", "perdais", "perdait", "perdions", "perdiez", "perdaient"], fut: ["perdrai", "perdras", "perdra", "perdrons", "perdrez", "perdront"], subj: ["perde", "perdes", "perde", "perdions", "perdiez", "perdent"], cond: ["perdrais", "perdrais", "perdrait", "perdrions", "perdriez", "perdraient"] } },
-            { tr: "Yapabilmek", inf: "pouvoir", conjugations: { pres: ["peux", "peux", "peut", "pouvons", "pouvez", "peuvent"], pc: ["ai pu", "as pu", "a pu", "avons pu", "avez pu", "ont pu"], imp: ["pouvais", "pouvais", "pouvait", "pouvions", "pouviez", "pouvaient"], fut: ["pourrai", "pourras", "pourra", "pourrons", "pourrez", "pourront"], subj: ["puisse", "puisses", "puisse", "puissions", "puissiez", "puissent"], cond: ["pourrais", "pourrais", "pourrait", "pourrions", "pourriez", "pourraient"] } },
-            { tr: "Almak", inf: "prendre", conjugations: { pres: ["prends", "prends", "prend", "prenons", "prenez", "prennent"], pc: ["ai pris", "as pris", "a pris", "avons pris", "avez pris", "ont pris"], imp: ["prenais", "prenais", "prenait", "prenions", "preniez", "prenaient"], fut: ["prendrai", "prendras", "prendra", "prendrons", "prendrez", "prendront"], subj: ["prenne", "prennes", "prenne", "prenions", "preniez", "prennent"], cond: ["prendrais", "prendrais", "prendrait", "prendrions", "prendriez", "prendraient"] } },
-            { tr: "Bakmak", inf: "regarder", conjugations: { pres: ["regarde", "regardes", "regarde", "regardons", "regardez", "regardent"], pc: ["ai regardé", "as regardé", "a regardé", "avons regardé", "avez regardé", "ont regardé"], imp: ["regardais", "regardais", "regardait", "regardions", "regardiez", "regardaient"], fut: ["regarderai", "regarderas", "regardera", "regarderons", "regarderez", "regarderont"], subj: ["regarde", "regardes", "regarde", "regardions", "regardiez", "regardent"], cond: ["regarderais", "regarderais", "regarderait", "regarderions", "regarderiez", "regarderaient"] } },
-            { tr: "Geri Vermek / İade", inf: "rendre", conjugations: { pres: ["rends", "rends", "rend", "rendons", "rendez", "rendent"], pc: ["ai rendu", "as rendu", "a rendu", "avons rendu", "avez rendu", "ont rendu"], imp: ["rendais", "rendais", "rendait", "rendions", "rendiez", "rendaient"], fut: ["rendrai", "rendras", "rendra", "rendrons", "rendrez", "rendront"], subj: ["rende", "rendes", "rende", "rendions", "rendiez", "rendent"], cond: ["rendrais", "rendrais", "rendrait", "rendrions", "rendriez", "rendraient"] } },
-            { tr: "Geri Dönmek / Eve Dönmek", inf: "rentrer", conjugations: { pres: ["rentre", "rentres", "rentre", "rentrons", "rentrez", "rentrent"], pc: ["suis rentré", "es rentré", "est rentré", "sommes rentrés", "êtes rentrés", "sont rentrés"], imp: ["rentrais", "rentrais", "rentrait", "rentrions", "rentriez", "rentraient"], fut: ["rentrerai", "rentreras", "rentrera", "rentrerons", "rentrerez", "rentreront"], subj: ["rentre", "rentres", "rentre", "rentrions", "rentriez", "rentrent"], cond: ["rentrerais", "rentrerais", "rentrerait", "rentrerions", "rentreriez", "rentreraient"] } },
-            { tr: "Kalmak", inf: "rester", conjugations: { pres: ["reste", "restes", "reste", "restons", "restez", "restent"], pc: ["suis resté", "es resté", "est resté", "sommes restés", "êtes restés", "sont restés"], imp: ["restais", "restais", "restait", "restions", "restiez", "restaient"], fut: ["resterai", "resteras", "restera", "resterons", "resterez", "resteront"], subj: ["reste", "restes", "reste", "restions", "restiez", "restent"], cond: ["resterais", "resterais", "resterait", "resterions", "resteriez", "resteraient"] } },
-            { tr: "Bilmek", inf: "savoir", conjugations: { pres: ["sais", "sais", "sait", "savons", "savez", "savent"], pc: ["ai su", "as su", "a su", "avons su", "avez su", "ont su"], imp: ["savais", "savais", "savait", "savions", "saviez", "savaient"], fut: ["saurai", "sauras", "saura", "saurons", "saurez", "sauront"], subj: ["sache", "saches", "sache", "sachions", "sachiez", "sachent"], cond: ["saurais", "saurais", "saurait", "saurions", "sauriez", "sauraient"] } },
-            { tr: "Hissetmek", inf: "sentir", conjugations: { pres: ["sens", "sens", "sent", "sentons", "sentez", "sentent"], pc: ["ai senti", "as senti", "a senti", "avons senti", "avez senti", "ont senti"], imp: ["sentais", "sentais", "sentait", "sentions", "sentiez", "sentaient"], fut: ["sentirai", "sentiras", "sentira", "sentirons", "sentirez", "sentiront"], subj: ["sente", "sentes", "sente", "sentions", "sentiez", "sentent"], cond: ["sentirais", "sentirais", "sentirait", "sentirions", "sentiriez", "sentiraient"] } },
-            { tr: "Dışarı Çıkmak", inf: "sortir", conjugations: { pres: ["sors", "sors", "sort", "sortons", "sortez", "sortent"], pc: ["suis sorti", "es sorti", "est sorti", "sommes sortis", "êtes sortis", "sont sortis"], imp: ["sortais", "sortais", "sortait", "sortions", "sortiez", "sortaient"], fut: ["sortirai", "sortiras", "sortira", "sortirons", "sortirez", "sortiront"], subj: ["sorte", "sortes", "sorte", "sortions", "sortiez", "sortent"], cond: ["sortirais", "sortirais", "sortirait", "sortirions", "sortiriez", "sortiraient"] } },
-            { tr: "Tutmak", inf: "tenir", conjugations: { pres: ["tiens", "tiens", "tient", "tenons", "tenez", "tiennent"], pc: ["ai tenu", "as tenu", "a tenu", "avons tenu", "avez tenu", "ont tenu"], imp: ["tenais", "tenais", "tenait", "tenions", "teniez", "tenaient"], fut: ["tiendrai", "tiendras", "tiendra", "tiendrons", "tiendrez", "tiendront"], subj: ["tienne", "tiennes", "tienne", "tenions", "teniez", "tiennent"], cond: ["tiendrais", "tiendrais", "tiendrait", "tiendrions", "tiendriez", "tiendraient"] } },
-            { tr: "Çalışmak", inf: "travailler", conjugations: { pres: ["travaille", "travailles", "travaille", "travaillons", "travaillez", "travaillent"], pc: ["ai travaillé", "as travaillé", "a travaillé", "avons travaillé", "avez travaillé", "ont travaillé"], imp: ["travaillais", "travaillais", "travaillait", "travaillions", "travailliez", "travaillaient"], fut: ["travaillerai", "travailleras", "travaillera", "travaillerons", "travaillerez", "travailleront"], subj: ["travaille", "travailles", "travaille", "travaillions", "travailliez", "travaillent"], cond: ["travaillerais", "travaillerais", "travaillerait", "travaillerions", "travailleriez", "travaillaient"] } },
-            { tr: "Bulmak", inf: "trouver", conjugations: { pres: ["trouve", "trouves", "trouve", "trouvons", "trouvez", "trouvent"], pc: ["ai trouvé", "as trouvé", "a trouvé", "avons trouvé", "avez trouvé", "ont trouvé"], imp: ["trouvais", "trouvais", "trouvait", "trouvions", "trouviez", "trouvaient"], fut: ["trouverai", "trouveras", "trouvera", "trouverons", "trouverez", "trouveront"], subj: ["trouve", "trouves", "trouve", "trouvions", "trouviez", "trouvent"], cond: ["trouverais", "trouverais", "trouverait", "trouverions", "trouveriez", "trouveraient"] } },
-            { tr: "Gelmek", inf: "venir", conjugations: { pres: ["viens", "viens", "vient", "venons", "venez", "viennent"], pc: ["suis venu", "es venu", "est venu", "sommes venus", "êtes venus", "sont venus"], imp: ["venais", "venais", "venait", "venions", "veniez", "venaient"], fut: ["viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront"], subj: ["vienne", "viennes", "vienne", "venions", "veniez", "viennent"], cond: ["viendrais", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient"] } },
-            { tr: "Yaşamak", inf: "vivre", conjugations: { pres: ["vis", "vis", "vit", "vivons", "vivez", "vivent"], pc: ["ai vécu", "as vécu", "a vécu", "avons vécu", "avez vécu", "ont vécu"], imp: ["vivais", "vivais", "vivait", "vivions", "viviez", "vivaient"], fut: ["vivrai", "vivras", "vivra", "vivrons", "vivrez", "vivront"], subj: ["vive", "vives", "vive", "vivions", "viviez", "vivent"], cond: ["vivrais", "vivrais", "vivrait", "vivrions", "vivriez", "vivraient"] } },
-            { tr: "Görmek", inf: "voir", conjugations: { pres: ["vois", "vois", "voit", "voyons", "voyez", "voient"], pc: ["ai vu", "as vu", "a vu", "avons vu", "avez vu", "ont vu"], imp: ["voyais", "voyais", "voyait", "voyions", "voyiez", "voyaient"], fut: ["verrai", "verras", "verra", "verrons", "verrez", "verront"], subj: ["voie", "voies", "voie", "voyions", "voyiez", "voient"], cond: ["verrais", "verrais", "verrait", "verrions", "verriez", "verraient"] } },
-            { tr: "İstemek", inf: "vouloir", conjugations: { pres: ["veux", "veux", "veut", "voulons", "voulez", "veulent"], pc: ["ai voulu", "as voulu", "a voulu", "avons voulu", "avez voulu", "ont voulu"], imp: ["voulais", "voulais", "voulait", "voulions", "vouliez", "voulaient"], fut: ["voudrai", "voudras", "voudra", "voudrons", "voudrez", "voudront"], subj: ["veuille", "veuilles", "veuille", "voulions", "vouliez", "veuillent"], cond: ["voudrais", "voudrais", "voudrait", "voudrions", "voudriez", "voudraient"] } }
-        ];
-
-        // Sıralama (Sort) İşlemi: Alfabetik
-        const VERBS_DATA = RAW_VERBS_DATA.sort((a, b) => a.inf.localeCompare(b.inf));
-
-        const TENSES = [
-            { id: 'pres', label: 'Présent', desc: "Şimdiki zaman." },
-            { id: 'pc', label: 'Passé Composé', desc: "Geçmiş zaman." },
-            { id: 'imp', label: 'Imparfait', desc: "Geçmişte süreklilik." },
-            { id: 'fut', label: 'Futur Simple', desc: "Gelecek zaman." },
-            { id: 'subj', label: 'Subjonctif', desc: "İstek/Dilek kipi." },
-            { id: 'cond', label: 'Conditionnel', desc: "Koşul kipi." }
-        ];
-
-        const PERSONS = [
-            { label: 'Je', index: 0 }, { label: 'Tu', index: 1 }, { label: 'Il / Elle', index: 2 },
-            { label: 'Nous', index: 3 }, { label: 'Vous', index: 4 }, { label: 'Ils / Elles', index: 5 }
-        ];
-
-        const ACCENTS = ['é', 'è', 'ê', 'ë', 'à', 'â', 'î', 'ï', 'ô', 'û', 'ù', 'ç'];
-
-        function App() {
+function App() {
             const [view, setView] = useState('index');
             const [currentVerbIdx, setCurrentVerbIdx] = useState(0);
             const [currentTenseIdx, setCurrentTenseIdx] = useState(0);
@@ -118,7 +12,13 @@
             const pageKey = `${currentVerbIdx}-${currentTenseIdx}`;
             const isPageChecked = checked[pageKey];
 
+            // Yardımcı Fonksiyon: Cevapları her aksiyonda kapat
+            const hideAnswers = () => {
+                if (showAllCorrect) setShowAllCorrect(false);
+            };
+
             const copyToClipboard = (text) => {
+                hideAnswers(); // Aksana basınca cevapları kapat
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
                 textArea.style.position = "fixed"; textArea.style.left = "-9999px";
@@ -132,11 +32,20 @@
             };
 
             const handleInputChange = (personIdx, value) => {
+                hideAnswers(); // Yazmaya başlayınca cevapları kapat
                 setAnswers(prev => ({ ...prev, [`${pageKey}-${personIdx}`]: value.toLowerCase() }));
             };
 
-            const handleCheck = () => setChecked(prev => ({ ...prev, [pageKey]: true }));
-            const handleReveal = () => { setShowAllCorrect(true); handleCheck(); };
+            const handleCheck = () => {
+                hideAnswers();
+                setChecked(prev => ({ ...prev, [pageKey]: true }));
+            };
+            
+            const handleReveal = () => { 
+                setShowAllCorrect(true); 
+                // Cevapları göster deyince kontrol edilmiş sayılsın ama showAllCorrect true kalsın
+                setChecked(prev => ({ ...prev, [pageKey]: true })); 
+            };
 
             const handleNext = () => {
                 setShowAllCorrect(false);
@@ -147,131 +56,15 @@
                 } else setView('index');
             };
 
-            const isTenseCompleted = (vIdx, tIdx) => checked[`${vIdx}-${tIdx}`];
+            const handlePrev = () => {
+                hideAnswers();
+                if (currentTenseIdx > 0) setCurrentTenseIdx(prev => prev - 1); 
+                else if (currentVerbIdx > 0) { 
+                    setCurrentVerbIdx(v => v-1); 
+                    setCurrentTenseIdx(TENSES.length-1); 
+                }
+            };
 
-            if (view === 'index') {
-                return (
-                    <div className="min-h-screen bg-[#f8fafc] p-6 md:p-12 text-slate-800 animate-fade-in">
-                        <div className="max-w-6xl mx-auto">
-                            <header className="mb-12 text-center">
-                                <h1 className="text-4xl font-black text-indigo-900 mb-4 tracking-tight">Fransızca Fiil Matrisi</h1>
-                                <p className="text-slate-500 text-lg font-medium">50 Temel Fiil - Alfabetik Olarak Sıralandı</p>
-                            </header>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {VERBS_DATA.map((verb, vIdx) => (
-                                    <div key={vIdx} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <h3 className="text-md font-black text-indigo-700">{verb.inf.toUpperCase()}</h3>
-                                            <span className="text-[10px] text-slate-400 font-bold uppercase">{verb.tr}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-1">
-                                            {TENSES.map((tense, tIdx) => (
-                                                <button key={tIdx} onClick={() => { setCurrentVerbIdx(vIdx); setCurrentTenseIdx(tIdx); setView('quiz'); }}
-                                                    className={`text-[8px] p-1.5 rounded-lg font-black uppercase tracking-tighter transition-all flex items-center justify-center ${isTenseCompleted(vIdx, tIdx) ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-50 text-slate-500 hover:bg-indigo-50'}`}>
-                                                    {tense.id} {isTenseCompleted(vIdx, tIdx) && <IconCheck size={8} strokeWidth={4} className="ml-1" />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 animate-fade-in">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="mb-6 flex flex-wrap items-center justify-center gap-2 bg-white p-3 rounded-2xl shadow-sm border border-slate-100 relative">
-                            {ACCENTS.map(char => (
-                                <button key={char} onClick={() => copyToClipboard(char)} className="w-8 h-8 flex items-center justify-center bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg font-bold text-lg transition-all border border-transparent hover:border-indigo-100">
-                                    {char}
-                                </button>
-                            ))}
-                            {copyFeedback && <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-lg">"{copyFeedback}" Kopyalandı!</div>}
-                        </div>
-
-                        <div className="mb-6 flex items-center justify-between">
-                            <button onClick={() => setView('index')} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-600 font-bold hover:bg-slate-50 transition-all">
-                                <IconHome /> <span className="hidden sm:inline">Menü</span>
-                            </button>
-                            <div className="text-xs font-black text-slate-400 bg-white px-3 py-1 rounded-full border border-slate-100">
-                                {currentVerbIdx + 1} / {VERBS_DATA.length} FIIL
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
-                            <div className="p-8 bg-indigo-600 text-white text-center">
-                                <h1 className="text-4xl font-black mb-1">{currentVerb.inf.toUpperCase()}</h1>
-                                <p className="text-indigo-100 text-lg opacity-80 font-medium">{currentVerb.tr}</p>
-                                <div className="mt-6 inline-block bg-white/10 px-6 py-2 rounded-full backdrop-blur-md border border-white/10 font-black text-sm uppercase tracking-widest">{currentTense.label}</div>
-                            </div>
-
-                            <div className="p-8 md:p-12">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                                    {PERSONS.map((person) => {
-                                        const key = `${pageKey}-${person.index}`;
-                                        const userValRaw = answers[key] || "";
-                                        const correctVal = currentVerb.conjugations[currentTense.id][person.index].toLowerCase();
-                                        const isCorrect = userValRaw.trim() === correctVal;
-                                        const isDisabled = correctVal === "-";
-                                        
-                                        return (
-                                            <div key={person.index} className={`flex flex-col gap-2 ${isDisabled ? 'opacity-20' : ''}`}>
-                                                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">{person.label}</label>
-                                                <div className="relative">
-                                                    <input type="text" 
-                                                        value={showAllCorrect ? (isDisabled ? "-" : correctVal) : userValRaw} 
-                                                        onChange={(e) => handleInputChange(person.index, e.target.value)} 
-                                                        disabled={isPageChecked || isDisabled} 
-                                                        placeholder={isDisabled ? "N/A" : "..."}
-                                                        className={`w-full p-4 rounded-2xl border-2 outline-none transition-all text-xl font-bold 
-                                                            ${!isPageChecked ? 'border-slate-100 bg-slate-50/50 focus:border-indigo-500 focus:bg-white' : 
-                                                              (isCorrect || showAllCorrect) ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-100 bg-rose-50 text-rose-800'}`} />
-                                                    {isPageChecked && !isDisabled && (
-                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                                            {(isCorrect || showAllCorrect) ? <IconCheck size={24} strokeWidth={4} className="text-emerald-500" /> : <IconX size={24} strokeWidth={4} className="text-rose-400" />}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {isPageChecked && !isCorrect && !showAllCorrect && !isDisabled && (
-                                                    <div className="mt-1 px-4 py-2 bg-indigo-50 rounded-xl text-xs font-black text-indigo-600">
-                                                        Doğrusu: {correctVal}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6">
-                                    <button onClick={() => { if (currentTenseIdx > 0) setCurrentTenseIdx(prev => prev - 1); else if (currentVerbIdx > 0) { setCurrentVerbIdx(v => v-1); setCurrentTenseIdx(TENSES.length-1); } }}
-                                        disabled={currentVerbIdx === 0 && currentTenseIdx === 0} className="text-slate-400 hover:text-indigo-600 font-black transition-colors disabled:opacity-0 flex items-center gap-2">
-                                        <IconChevronLeft /> Önceki
-                                    </button>
-
-                                    {!isPageChecked ? (
-                                        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                                            <button onClick={handleCheck} className="flex-1 px-12 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-2xl hover:bg-indigo-700 transition-all">Kontrol Et</button>
-                                            <button onClick={handleReveal} className="flex items-center justify-center gap-2 px-6 py-5 bg-slate-100 text-slate-600 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all"><IconEye /> Cevaplar</button>
-                                        </div>
-                                    ) : (
-                                        <button onClick={handleNext} className="w-full md:w-auto px-16 py-5 bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-2xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-3">
-                                            Sıradaki <IconArrowRight />
-                                        </button>
-                                    )}
-                                    <div className="hidden md:block w-[100px]"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+            // ... Render kısmındaki input ve butonlara hideAnswers eklemesi ...
+            // Örnek: <input onFocus={hideAnswers} ... />
+            // Örnek: <button onClick={handlePrev} ... />
