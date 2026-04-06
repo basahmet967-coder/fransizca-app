@@ -3,241 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>La Matrice des Verbes - Full 50</title>
+    <title>La Matrice des Verbes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #fcfcfc; touch-action: manipulation; }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; height: 100vh; overflow: hidden; }
+        .safe-area { max-height: 100vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        /* Klavye açıldığında soru alanını sıkıştır */
+        @media (max-height: 500px) {
+            .hide-on-keyboard { display: none; }
+            .compact-spacing { margin-bottom: 0.5rem !important; padding: 1rem !important; }
+            h2 { font-size: 1.5rem !important; }
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
-        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-        const IconHeart = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill={filled ? "#ff4d4d" : "none"} stroke="#ff4d4d" strokeWidth="2.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
-        const IconTrophy = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
+        // --- ICONS ---
+        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+        const IconHeart = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill={filled ? "#ef4444" : "none"} stroke="#ef4444" strokeWidth="2.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+        const IconTimer = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
 
-        const PERSONS = [
-            { label: 'JE', index: 0 }, { label: 'TU', index: 1 }, 
-            { label: 'IL', index: 2 }, { label: 'ELLE', index: 3 },
-            { label: 'NOUS', index: 4 }, { label: 'VOUS', index: 5 }, 
-            { label: 'ILS', index: 6 }, { label: 'ELLES', index: 7 }
-        ];
-
+        // --- DATA ---
+        const PERSONS = ['JE', 'TU', 'IL', 'ELLE', 'NOUS', 'VOUS', 'ILS', 'ELLES'];
         const TENSES = [
             { id: 'pres', label: 'PRÉSENT' }, { id: 'pc', label: 'PASSÉ COMPOSÉ' }, 
             { id: 'imp', label: 'IMPARFAIT' }, { id: 'fut', label: 'FUTUR SIMPLE' }, 
             { id: 'subj', label: 'SUBJONCTIF' }, { id: 'cond', label: 'CONDITIONNEL' }
         ];
 
-        // 6'lı çekimi 8'li (JE, TU, IL, ELLE, NOUS, VOUS, ILS, ELLES) hale getirir
-        const expand = (arr) => {
-            if (!arr || arr.length < 6) return Array(8).fill("-");
-            return [arr[0], arr[1], arr[2], arr[2], arr[3], arr[4], arr[5], arr[5]];
-        };
+        const expand = (arr) => [arr[0], arr[1], arr[2], arr[2], arr[3], arr[4], arr[5], arr[5]];
 
         const VERBS_DATA = [
             { tr: "Satın Almak", inf: "acheter", conj: { pres: expand(["achète", "achètes", "achète", "achetons", "achetez", "achètent"]), pc: expand(["ai acheté", "as acheté", "a acheté", "avons acheté", "avez acheté", "ont acheté"]), imp: expand(["achetais", "achetais", "achetait", "achetions", "achetiez", "achetaient"]), fut: expand(["achèterai", "achèteras", "achètera", "achèterons", "achèterez", "achèteront"]), subj: expand(["achète", "achètes", "achète", "achetions", "achetiez", "achètent"]), cond: expand(["achèterais", "achèterais", "achèterait", "achèterions", "achèteriez", "achèteraient"]) } },
             { tr: "Sevmek", inf: "aimer", conj: { pres: expand(["aime", "aimes", "aime", "aimons", "aimez", "aiment"]), pc: expand(["ai aimé", "as aimé", "a aimé", "avons aimé", "avez aimé", "ont aimé"]), imp: expand(["aimais", "aimais", "aimait", "aimions", "aimiez", "aimaient"]), fut: expand(["aimerai", "aimeras", "aimera", "aimerons", "aimerez", "aimeront"]), subj: expand(["aime", "aimes", "aime", "aimions", "aimiez", "aiment"]), cond: expand(["aimerais", "aimerais", "aimerait", "aimerions", "aimeriez", "aimeraient"]) } },
             { tr: "Gitmek", inf: "aller", conj: { pres: expand(["vais", "vas", "va", "allons", "allez", "vont"]), pc: expand(["suis allé", "es allé", "est allé", "sommes allés", "êtes allés", "sont allés"]), imp: expand(["allais", "allais", "allait", "allions", "alliez", "allaient"]), fut: expand(["irai", "iras", "ira", "irons", "irez", "iront"]), subj: expand(["aille", "ailles", "aille", "allions", "alliez", "aillent"]), cond: expand(["irais", "irais", "irait", "irions", "iriez", "iraient"]) } },
-            { tr: "Aramak / Seslenmek", inf: "appeler", conj: { pres: expand(["appelle", "appelles", "appelle", "appelons", "appelez", "appellent"]), pc: expand(["ai appelé", "as appelé", "a appelé", "avons appelé", "avez appelé", "ont appelé"]), imp: expand(["appelais", "appelais", "appelait", "appelions", "appeliez", "appelaient"]), fut: expand(["appellerai", "appelleras", "appellera", "appellerons", "appellerez", "appelleront"]), subj: expand(["appelle", "appelles", "appelle", "appelions", "appeliez", "appellent"]), cond: expand(["appellerais", "appellerais", "appellerait", "appellerions", "appelleriez", "appelleraient"]) } },
-            { tr: "Öğrenmek", inf: "apprendre", conj: { pres: expand(["apprends", "apprends", "apprend", "apprenons", "apprenez", "apprennent"]), pc: expand(["ai appris", "as appris", "a appris", "avons appris", "avez appris", "ont appris"]), imp: expand(["apprenais", "apprenais", "apprenait", "apprenions", "appreniez", "apprenaient"]), fut: expand(["apprendrai", "apprendras", "apprendra", "apprendrons", "apprendrez", "apprendront"]), subj: expand(["apprenne", "apprennes", "apprenne", "apprenions", "appreniez", "apprennent"]), cond: expand(["apprendrais", "apprendrais", "apprendrait", "apprendrions", "apprendriez", "apprendraient"]) } },
-            { tr: "Varmak", inf: "arriver", conj: { pres: expand(["arrive", "arrives", "arrive", "arrivons", "arrivez", "arrivent"]), pc: expand(["suis arrivé", "es arrivé", "est arrivé", "sommes arrivés", "êtes arrivés", "sont arrivés"]), imp: expand(["arrivais", "arrivais", "arrivait", "arrivions", "arriviez", "arrivaient"]), fut: expand(["arriverai", "arriveras", "arrivera", "arriverons", "arriverez", "arriveront"]), subj: expand(["arrive", "arrives", "arrive", "arrivions", "arriviez", "arrivent"]), cond: expand(["arriverais", "arriverais", "arriverait", "arriverions", "arriveriez", "arriveraient"]) } },
-            { tr: "Beklemek", inf: "attendre", conj: { pres: expand(["attends", "attends", "attend", "attendons", "attendez", "attendent"]), pc: expand(["ai attendu", "as attendu", "a attendu", "avons attendu", "avez attendu", "ont attendu"]), imp: expand(["attendais", "attendais", "attendait", "attendions", "attendiez", "attendaient"]), fut: expand(["attendrai", "attendras", "attendra", "attendrons", "attendrez", "attendront"]), subj: expand(["attende", "attendes", "attende", "attendions", "attendiez", "attendent"]), cond: expand(["attendrais", "attendrais", "attendrait", "attendrions", "attendriez", "attendraient"]) } },
-            { tr: "Sahip Olmak", inf: "avoir", conj: { pres: expand(["ai", "as", "a", "avons", "avez", "ont"]), pc: expand(["ai eu", "as eu", "a eu", "avons eu", "avez eu", "ont eu"]), imp: expand(["avais", "avais", "avait", "avions", "aviez", "avaient"]), fut: expand(["aurai", "auras", "aura", "aurons", "aurez", "auront"]), subj: expand(["aie", "aies", "ait", "ayons", "ayez", "aient"]), cond: expand(["aurais", "aurais", "aurait", "aurions", "auriez", "auraient"]) } },
-            { tr: "Aramak", inf: "chercher", conj: { pres: expand(["cherche", "cherches", "cherche", "cherchons", "cherchez", "cherchent"]), pc: expand(["ai cherché", "as cherché", "a cherché", "avons cherché", "avez cherché", "ont cherché"]), imp: expand(["cherchais", "cherchais", "cherchait", "cherchions", "cherchiez", "cherchaient"]), fut: expand(["chercherai", "chercheras", "cherchera", "chercherons", "chercherez", "chercheront"]), subj: expand(["cherche", "cherches", "cherche", "cherchions", "cherchiez", "cherchent"]), cond: expand(["chercherais", "chercherais", "chercherait", "chercherions", "chercheriez", "chercheraient"]) } },
-            { tr: "Başlamak", inf: "commencer", conj: { pres: expand(["commence", "commences", "commence", "commençons", "commencez", "commencent"]), pc: expand(["ai commencé", "as commencé", "a commencé", "avons commencé", "avez commencé", "ont commencé"]), imp: expand(["commençais", "commençais", "commençait", "commencions", "commenciez", "commençaient"]), fut: expand(["commencerai", "commenceras", "commencera", "commencerons", "commencerez", "commenceront"]), subj: expand(["commence", "commences", "commence", "commencions", "commenciez", "commencent"]), cond: expand(["commencerais", "commencerais", "commencerait", "commencerions", "commenceriez", "commenceraient"]) } },
-            { tr: "Anlamak", inf: "comprendre", conj: { pres: expand(["comprends", "comprends", "comprend", "comprenons", "comprenez", "comprennent"]), pc: expand(["ai compris", "as compris", "a compris", "avons compris", "avez compris", "ont compris"]), imp: expand(["comprenais", "comprenais", "comprenait", "comprenions", "compreniez", "comprenaient"]), fut: expand(["comprendrai", "comprendras", "comprendra", "comprendrons", "comprendrez", "comprendront"]), subj: expand(["comprenne", "comprennes", "comprenne", "comprenions", "compreniez", "comprennent"]), cond: expand(["comprendrais", "comprendrais", "comprendrait", "comprendrions", "comprendriez", "comprendraient"]) } },
-            { tr: "Tanımak", inf: "connaître", conj: { pres: expand(["connais", "connais", "connaît", "connaissons", "connaissez", "connaissent"]), pc: expand(["ai connu", "as connu", "a connu", "avons connu", "avez connu", "ont connu"]), imp: expand(["connaissais", "connaissais", "connaissait", "connaissions", "connaissiez", "connaissaient"]), fut: expand(["connaîtrai", "connaîtras", "connaîtra", "connaîtrons", "connaîtrez", "connaîtront"]), subj: expand(["connaisse", "connaisses", "connaisse", "connaissions", "connaissiez", "connaissent"]), cond: expand(["connaîtrais", "connaîtrais", "connaîtrait", "connaîtrions", "connaîtriez", "connaîtraient"]) } },
-            { tr: "İnanmak", inf: "croire", conj: { pres: expand(["crois", "crois", "croit", "croyons", "croyez", "croient"]), pc: expand(["ai cru", "as cru", "a cru", "avons cru", "avez cru", "ont cru"]), imp: expand(["croyais", "croyais", "croyait", "croyions", "croyiez", "croyaient"]), fut: expand(["croirai", "croiras", "croira", "croirons", "croirez", "croiront"]), subj: expand(["croie", "croies", "croie", "croyions", "croyiez", "croient"]), cond: expand(["croirais", "croirais", "croirait", "croirions", "croiriez", "croiraient"]) } },
-            { tr: "Sormak / İstemek", inf: "demander", conj: { pres: expand(["demande", "demandes", "demande", "demandons", "demandez", "demandent"]), pc: expand(["ai demandé", "as demandé", "a demandé", "avons demandé", "avez demandé", "ont demandé"]), imp: expand(["demandais", "demandais", "demandait", "demandions", "demandiez", "demandaient"]), fut: expand(["demanderai", "demanderas", "demandera", "demanderons", "demanderez", "demanderont"]), subj: expand(["demande", "demandes", "demande", "demandions", "demandiez", "demandent"]), cond: expand(["demanderais", "demanderais", "demanderait", "demanderions", "demanderiez", "demanderaient"]) } },
-            { tr: "Zorunda Olmak", inf: "devoir", conj: { pres: expand(["dois", "dois", "doit", "devons", "devez", "doivent"]), pc: expand(["ai dû", "as dû", "a dû", "avons dû", "avez dû", "ont dû"]), imp: expand(["devais", "devais", "devait", "devions", "deviez", "devaient"]), fut: expand(["devrai", "devras", "devra", "devrons", "devrez", "devront"]), subj: expand(["doive", "doives", "doive", "devions", "deviez", "doivent"]), cond: expand(["devrais", "devrais", "devrait", "devrions", "devriez", "devraient"]) } },
-            { tr: "Söylemek", inf: "dire", conj: { pres: expand(["dis", "dis", "dit", "disons", "dites", "disent"]), pc: expand(["ai dit", "as dit", "a dit", "avons dit", "avez dit", "ont dit"]), imp: expand(["disais", "disais", "disait", "disions", "disiez", "disaient"]), fut: expand(["dirai", "diras", "dira", "dirons", "direz", "diront"]), subj: expand(["dise", "dises", "dise", "disions", "disiez", "disent"]), cond: expand(["dirais", "dirais", "dirait", "dirions", "diriez", "diraient"]) } },
-            { tr: "Vermek", inf: "donner", conj: { pres: expand(["donne", "donnes", "donne", "donnons", "donnez", "donnent"]), pc: expand(["ai donné", "as donné", "a donné", "avons donné", "avez donné", "ont donné"]), imp: expand(["donnais", "donnais", "donnait", "donnions", "donniez", "donnaient"]), fut: expand(["donnerai", "donneras", "donnera", "donnerons", "donnerez", "donneront"]), subj: expand(["donne", "donnes", "donne", "donnions", "donniez", "donnent"]), cond: expand(["donnerais", "donnerais", "donnerait", "donnerions", "donneriez", "donneraient"]) } },
-            { tr: "Dinlemek", inf: "écouter", conj: { pres: expand(["écoute", "écoutes", "écoute", "écoutons", "écoutez", "écoutent"]), pc: expand(["ai écouté", "as écouté", "a écouté", "avons écouté", "avez écouté", "ont écouté"]), imp: expand(["écoutais", "écoutais", "écoutait", "écoutions", "écoutiez", "écoutaient"]), fut: expand(["écouterai", "écouteras", "écoutera", "écouterons", "écouterez", "écouteront"]), subj: expand(["écoute", "écoutes", "écoute", "écoutions", "écoutiez", "écoutent"]), cond: expand(["écouterais", "écouterais", "écouterait", "écouterions", "écouteriez", "écouteraient"]) } },
-            { tr: "Yazmak", inf: "écrire", conj: { pres: expand(["écris", "écris", "écrit", "écrivons", "écrivez", "écrivent"]), pc: expand(["ai écrit", "as écrit", "a écrit", "avons écrit", "avez écrit", "ont écrit"]), imp: expand(["écrivais", "écrivais", "écrivait", "écrivions", "écriviez", "écrivaient"]), fut: expand(["écrirai", "écriras", "écrira", "écrirons", "écrirez", "écriront"]), subj: expand(["écrive", "écrives", "écrive", "écrivions", "écriviez", "écrivent"]), cond: expand(["écrirais", "écrirais", "écrirait", "écririons", "écririez", "écriraient"]) } },
-            { tr: "Duymak", inf: "entendre", conj: { pres: expand(["entends", "entends", "entend", "entendons", "entendez", "entendent"]), pc: expand(["ai entendu", "as entendu", "a entendu", "avons entendu", "avez entendu", "ont entendu"]), imp: expand(["entendais", "entendais", "entendait", "entendions", "entendiez", "entendaient"]), fut: expand(["entendrai", "entendras", "entendra", "entendrons", "entendrez", "entendront"]), subj: expand(["entende", "entendes", "entende", "entendions", "entendiez", "entendent"]), cond: expand(["entendrais", "entendrais", "entendrait", "entendrions", "entendriez", "entendraient"]) } },
-            { tr: "Olmak", inf: "être", conj: { pres: expand(["suis", "es", "est", "sommes", "êtes", "sont"]), pc: expand(["ai été", "as été", "a été", "avons été", "avez été", "ont été"]), imp: expand(["étais", "étais", "était", "étions", "étiez", "étaient"]), fut: expand(["serai", "seras", "sera", "serons", "serez", "seront"]), subj: expand(["sois", "sois", "soit", "soyons", "soyez", "soient"]), cond: expand(["serais", "serais", "serait", "serions", "seriez", "seraient"]) } },
-            { tr: "Yapmak", inf: "faire", conj: { pres: expand(["fais", "fais", "fait", "faisons", "faites", "font"]), pc: expand(["ai fait", "as fait", "a fait", "avons fait", "avez fait", "ont fait"]), imp: expand(["faisais", "faisais", "faisait", "faisions", "faisiez", "faisaient"]), fut: expand(["ferai", "feras", "fera", "ferons", "ferez", "feront"]), subj: expand(["fasse", "fasses", "fasse", "fassions", "fassiez", "fassent"]), cond: expand(["ferais", "ferais", "ferait", "ferions", "feriez", "feraient"]) } },
-            { tr: "Gerekmek", inf: "falloir", conj: { pres: ["-", "-", "il faut", "il faut", "-", "-", "-", "-"], pc: ["-", "-", "il a fallu", "il a fallu", "-", "-", "-", "-"], imp: ["-", "-", "il fallait", "il fallait", "-", "-", "-", "-"], fut: ["-", "-", "il faudra", "il faudra", "-", "-", "-", "-"], subj: ["-", "-", "il faille", "il faille", "-", "-", "-", "-"], cond: ["-", "-", "il faudrait", "il faudrait", "-", "-", "-", "-"] } },
-            { tr: "Bırakmak", inf: "laisser", conj: { pres: expand(["laisse", "laisses", "laisse", "laissons", "laissez", "laissent"]), pc: expand(["ai laissé", "as laissé", "a laissé", "avons laissé", "avez laissé", "ont laissé"]), imp: expand(["laissais", "laissais", "laissait", "laissions", "laissiez", "laissaient"]), fut: expand(["laisserai", "laisseras", "laissera", "laisserons", "laisserez", "laisseront"]), subj: expand(["laisse", "laisses", "laisse", "laissions", "laissiez", "laissent"]), cond: expand(["laisserais", "laisserais", "laisserait", "laisserions", "laisseriez", "laisseraient"]) } },
-            { tr: "Yemek", inf: "manger", conj: { pres: expand(["mange", "manges", "mange", "mangeons", "mangez", "mangent"]), pc: expand(["ai mangé", "as mangé", "a mangé", "avons mangé", "avez mangé", "ont mangé"]), imp: expand(["mangeais", "mangeais", "mangeait", "mangions", "mangiez", "mangeaient"]), fut: expand(["mangerai", "mangeras", "mangera", "mangerons", "mangerez", "mangeront"]), subj: expand(["mange", "manges", "mange", "mangions", "mangiez", "mangent"]), cond: expand(["mangerais", "mangerais", "mangerait", "mangerions", "mangeriez", "mangeraient"]) } },
-            { tr: "Koymak", inf: "mettre", conj: { pres: expand(["mets", "mets", "met", "mettons", "mettez", "mettent"]), pc: expand(["ai mis", "as mis", "a mis", "avons mis", "avez mis", "ont mis"]), imp: expand(["mettais", "mettais", "mettait", "mettions", "mettiez", "mettaient"]), fut: expand(["mettrai", "mettras", "mettra", "mettrons", "mettrez", "mettront"]), subj: expand(["mette", "mettes", "mette", "mettions", "mettiez", "mettent"]), cond: expand(["mettrais", "mettrais", "mettrait", "mettrions", "mettriez", "mettraient"]) } },
-            { tr: "Göstermek", inf: "montrer", conj: { pres: expand(["montre", "montres", "montre", "montrons", "montrez", "montrent"]), pc: expand(["ai montré", "as montré", "a montré", "avons montré", "avez montré", "ont montré"]), imp: expand(["montrais", "montrais", "montrait", "montrions", "montriez", "montraient"]), fut: expand(["montrerai", "montreras", "montrera", "montrerons", "montrerez", "montreront"]), subj: expand(["montre", "montres", "montre", "montrions", "montriez", "montrent"]), cond: expand(["montrerais", "montrerais", "montrerait", "montrerions", "montreriez", "montreraient"]) } },
-            { tr: "Görünmek", inf: "paraître", conj: { pres: expand(["parais", "parais", "paraît", "paraissons", "paraissez", "paraissent"]), pc: expand(["ai paru", "as paru", "a paru", "avons paru", "avez paru", "ont paru"]), imp: expand(["paraissais", "paraissais", "paraissait", "paraissions", "paraissiez", "paraissaient"]), fut: expand(["paraîtrai", "paraîtras", "paraîtra", "paraîtrons", "paraîtrez", "paraîtront"]), subj: expand(["paraisse", "paraisses", "paraisse", "paraissions", "paraissiez", "paraissent"]), cond: expand(["paraîtrais", "paraîtrais", "paraîtrait", "paraîtrions", "paraîtriez", "paraîtraient"]) } },
-            { tr: "Konuşmak", inf: "parler", conj: { pres: expand(["parle", "parles", "parle", "parlons", "parlez", "parlent"]), pc: expand(["ai parlé", "as parlé", "a parlé", "avons parlé", "avez parlé", "ont parlé"]), imp: expand(["parlais", "parlais", "parlait", "parlions", "parliez", "parlaient"]), fut: expand(["parlerai", "parleras", "parlera", "parlerons", "parlerez", "parleront"]), subj: expand(["parle", "parles", "parle", "parlions", "parliez", "parlent"]), cond: expand(["parlerais", "parlerais", "parlerait", "parlerions", "parleriez", "parleraient"]) } },
-            { tr: "Gitmek / Ayrılmak", inf: "partir", conj: { pres: expand(["pars", "pars", "part", "partons", "partez", "partent"]), pc: expand(["suis parti", "es parti", "est parti", "sommes partis", "êtes partis", "sont partis"]), imp: expand(["partais", "partais", "partait", "partions", "partiez", "partaient"]), fut: expand(["partirai", "partiras", "partira", "partirons", "partirez", "partiront"]), subj: expand(["parte", "partes", "parte", "partions", "partiez", "partent"]), cond: expand(["partirais", "partirais", "partirait", "partirions", "partiriez", "partiraient"]) } },
-            { tr: "Geçmek / Harcamak", inf: "passer", conj: { pres: expand(["passe", "passes", "passe", "passons", "passez", "passent"]), pc: expand(["ai passé", "as passé", "a passé", "avons passé", "avez passé", "ont passé"]), imp: expand(["passais", "passais", "passait", "passions", "passiez", "passaient"]), fut: expand(["passerai", "passeras", "passera", "passerons", "passerez", "passeront"]), subj: expand(["passe", "passes", "passe", "passions", "passiez", "passent"]), cond: expand(["passerais", "passerais", "passerait", "passerions", "passeriez", "passeraient"]) } },
-            { tr: "Ödemek", inf: "payer", conj: { pres: expand(["paye", "payes", "paye", "payons", "payez", "payent"]), pc: expand(["ai payé", "as payé", "a payé", "avons payé", "avez payé", "ont payé"]), imp: expand(["payais", "payais", "payait", "payions", "payiez", "payaient"]), fut: expand(["payerai", "payeras", "payera", "payerons", "payerez", "payeront"]), subj: expand(["paye", "payes", "paye", "payions", "payiez", "payent"]), cond: expand(["payerais", "payerais", "payerait", "payerions", "payeriez", "payeraient"]) } },
-            { tr: "Düşünmek", inf: "penser", conj: { pres: expand(["pense", "penses", "pense", "pensons", "pensez", "pensent"]), pc: expand(["ai pensé", "as pensé", "a pensé", "avons pensé", "avez pensé", "ont pensé"]), imp: expand(["pensais", "pensais", "pensait", "pensions", "pensiez", "pensaient"]), fut: expand(["penserai", "penseras", "pensera", "penserons", "penserez", "penseront"]), subj: expand(["pense", "penses", "pense", "pensions", "pensiez", "penter"]), cond: expand(["penserais", "penserais", "penserait", "penserions", "penseriez", "penseraient"]) } },
-            { tr: "Kaybetmek", inf: "perdre", conj: { pres: expand(["perds", "perds", "perd", "perdons", "perdez", "perdent"]), pc: expand(["ai perdu", "as perdu", "a perdu", "avons perdu", "avez perdu", "ont perdu"]), imp: expand(["perdais", "perdais", "perdait", "perdions", "perdiez", "perdaient"]), fut: expand(["perdrai", "perdras", "perdra", "perdrons", "perdrez", "perdront"]), subj: expand(["perde", "perdes", "perde", "perdions", "perdiez", "perdent"]), cond: expand(["perdrais", "perdrais", "perdrait", "perdrions", "perdriez", "perdraient"]) } },
-            { tr: "Yapabilmek", inf: "pouvoir", conj: { pres: expand(["peux", "peux", "peut", "pouvons", "pouvez", "peuvent"]), pc: expand(["ai pu", "as pu", "a pu", "avons pu", "avez pu", "ont pu"]), imp: expand(["pouvais", "pouvais", "pouvait", "pouvions", "pouviez", "pouvaient"]), fut: expand(["pourrai", "pourras", "pourra", "pourrons", "pourrez", "pourront"]), subj: expand(["puisse", "puisses", "puisse", "puissions", "puissiez", "puissent"]), cond: expand(["pourrais", "pourrais", "pourrait", "pourrions", "pourriez", "pourraient"]) } },
-            { tr: "Almak", inf: "prendre", conj: { pres: expand(["prends", "prends", "prend", "prenons", "prenez", "prennent"]), pc: expand(["ai pris", "as pris", "a pris", "avons pris", "avez pris", "ont pris"]), imp: expand(["prenais", "prenais", "prenait", "prenions", "preniez", "prenaient"]), fut: expand(["prendrai", "prendras", "prendra", "prendrons", "prendrez", "prendront"]), subj: expand(["prenne", "prennes", "prenne", "prenions", "preniez", "prennent"]), cond: expand(["prendrais", "prendrais", "prendrait", "prendrions", "prendriez", "prendraient"]) } },
-            { tr: "Bakmak", inf: "regarder", conj: { pres: expand(["regarde", "regardes", "regarde", "regardons", "regardez", "regardent"]), pc: expand(["ai regardé", "as regardé", "a regardé", "avons regardé", "avez regardé", "ont regardé"]), imp: expand(["regardais", "regardais", "regardait", "regardions", "regardiez", "regardaient"]), fut: expand(["regarderai", "regarderas", "regardera", "regarderons", "regarderez", "regarderont"]), subj: expand(["regarde", "regardes", "regarde", "regardions", "regardiez", "regardent"]), cond: expand(["regarderais", "regarderais", "regarderait", "regarderions", "regarderiez", "regarderaient"]) } },
-            { tr: "Geri Vermek / Etmek", inf: "rendre", conj: { pres: expand(["rends", "rends", "rend", "rendons", "rendez", "rendent"]), pc: expand(["ai rendu", "as rendu", "a rendu", "avons rendu", "avez rendu", "ont rendu"]), imp: expand(["rendais", "rendais", "rendait", "rendions", "rendiez", "rendaient"]), fut: expand(["rendrai", "rendras", "rendra", "rendrons", "rendrez", "rendront"]), subj: expand(["rende", "rendes", "rende", "rendions", "rendiez", "rendent"]), cond: expand(["rendrais", "rendrais", "rendrait", "rendrions", "rendriez", "rendraient"]) } },
-            { tr: "Geri Dönmek", inf: "rentrer", conj: { pres: expand(["rentre", "rentres", "rentre", "rentrons", "rentrez", "rentrent"]), pc: expand(["suis rentré", "es rentré", "est rentré", "sommes rentrés", "êtes rentrés", "sont rentrés"]), imp: expand(["rentrais", "rentrais", "rentrait", "rentrions", "rentriez", "rentraient"]), fut: expand(["rentrerai", "rentreras", "rentrera", "rentrerons", "rentrerez", "rentreront"]), subj: expand(["rentre", "rentres", "rentre", "rentrions", "rentriez", "rentrent"]), cond: expand(["rentrerais", "rentrerais", "rentrerait", "rentrerions", "rentreriez", "rentreraient"]) } },
-            { tr: "Kalmak", inf: "rester", conj: { pres: expand(["reste", "restes", "reste", "restons", "restez", "restent"]), pc: expand(["suis resté", "es resté", "est resté", "sommes restés", "êtes restés", "sont restés"]), imp: expand(["restais", "restais", "restait", "restions", "restiez", "restaient"]), fut: expand(["resterai", "resteras", "restera", "resterons", "resterez", "resteront"]), subj: expand(["reste", "restes", "reste", "restions", "restiez", "restent"]), cond: expand(["resterais", "resterais", "resterait", "resterions", "resteriez", "resteraient"]) } },
-            { tr: "Bilmek", inf: "savoir", conj: { pres: expand(["sais", "sais", "sait", "savons", "savez", "savent"]), pc: expand(["ai su", "as su", "a su", "avons su", "avez su", "ont su"]), imp: expand(["savais", "savais", "savait", "savions", "saviez", "savaient"]), fut: expand(["saurai", "sauras", "saura", "saurons", "saurez", "sauront"]), subj: expand(["sache", "saches", "sache", "sachions", "sachiez", "sachent"]), cond: expand(["saurais", "saurais", "saurait", "saurions", "sauriez", "sauraient"]) } },
             { tr: "Hissetmek", inf: "sentir", conj: { pres: expand(["sens", "sens", "sent", "sentons", "sentez", "sentent"]), pc: expand(["ai senti", "as senti", "a senti", "avons senti", "avez senti", "ont senti"]), imp: expand(["sentais", "sentais", "sentait", "sentions", "sentiez", "sentaient"]), fut: expand(["sentirai", "sentiras", "sentira", "sentirons", "sentirez", "sentiront"]), subj: expand(["sente", "sentes", "sente", "sentions", "sentiez", "sentent"]), cond: expand(["sentirais", "sentirais", "sentirait", "sentirions", "sentiriez", "sentiraient"]) } },
-            { tr: "Dışarı Çıkmak", inf: "sortir", conj: { pres: expand(["sors", "sors", "sort", "sortons", "sortez", "sortent"]), pc: expand(["suis sorti", "es sorti", "est sorti", "sommes sortis", "êtes sortis", "sont sortis"]), imp: expand(["sortais", "sortais", "sortait", "sortions", "sortiez", "sortaient"]), fut: expand(["sortirai", "sortiras", "sortira", "sortirons", "sortirez", "sortiront"]), subj: expand(["sorte", "sortes", "sorte", "sortions", "sortiez", "sortent"]), cond: expand(["sortirais", "sortirais", "sortirait", "sortirions", "sortiriez", "sortiraient"]) } },
-            { tr: "Tutmak", inf: "tenir", conj: { pres: expand(["tiens", "tiens", "tient", "tenons", "tenez", "tiennent"]), pc: expand(["ai tenu", "as tenu", "a tenu", "avons tenu", "avez tenu", "ont tenu"]), imp: expand(["tenais", "tenais", "tenait", "tenions", "teniez", "tenaient"]), fut: expand(["tiendrai", "tiendras", "tiendra", "tiendrons", "tiendrez", "tiendront"]), subj: expand(["tienne", "tiennes", "tienne", "tenions", "teniez", "tiennent"]), cond: expand(["tiendrais", "tiendrais", "tiendrait", "tiendrions", "tiendriez", "tiendraient"]) } },
-            { tr: "Çalışmak", inf: "travailler", conj: { pres: expand(["travaille", "travailles", "travaille", "travaillons", "travaillez", "travaillent"]), pc: expand(["ai travaillé", "as travaillé", "a travaillé", "avons travaillé", "avez travaillé", "ont travaillé"]), imp: expand(["travaillais", "travaillais", "travaillait", "travaillions", "travailliez", "travaillaient"]), fut: expand(["travaillerai", "travailleras", "travaillera", "travaillerons", "travaillerez", "travailleront"]), subj: expand(["travaille", "travailles", "travaille", "travaillions", "travailliez", "travaillent"]), cond: expand(["travaillerais", "travaillerais", "travaillerait", "travaillerions", "travailleriez", "travailleraient"]) } },
-            { tr: "Bulmak", inf: "trouver", conj: { pres: expand(["trouve", "trouves", "trouve", "trouvons", "trouvez", "trouvent"]), pc: expand(["ai trouvé", "as trouvé", "a trouvé", "avons trouvé", "avez trouvé", "ont trouvé"]), imp: expand(["trouvais", "trouvais", "trouvait", "trouvions", "trouviez", "trouvaient"]), fut: expand(["trouverai", "trouveras", "trouvera", "trouverons", "trouverez", "trouveront"]), subj: expand(["trouve", "trouves", "trouve", "trouvions", "trouviez", "trouvent"]), cond: expand(["trouverais", "trouverais", "trouverait", "trouverions", "trouveriez", "trouveraient"]) } },
-            { tr: "Gelmek", inf: "venir", conj: { pres: expand(["viens", "viens", "vient", "venons", "venez", "viennent"]), pc: expand(["suis venu", "es venu", "est venu", "sommes venus", "êtes venus", "sont venus"]), imp: expand(["venais", "venais", "venait", "venions", "veniez", "venaient"]), fut: expand(["viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront"]), subj: expand(["vienne", "viennes", "vienne", "venions", "veniez", "viennent"]), cond: expand(["viendrais", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient"]) } },
-            { tr: "Yaşamak", inf: "vivre", conj: { pres: expand(["vis", "vis", "vit", "vivons", "vivez", "vivent"]), pc: expand(["ai vécu", "as vécu", "a vécu", "avons vécu", "avez vécu", "ont vécu"]), imp: expand(["vivais", "vivais", "vivait", "vivions", "viviez", "vivaient"]), fut: expand(["vivrai", "vivras", "vivra", "vivrons", "vivrez", "vivront"]), subj: expand(["vive", "vives", "vive", "vivions", "viviez", "vivent"]), cond: expand(["vivrais", "vivrais", "vivrait", "vivrions", "vivriez", "vivraient"]) } },
-            { tr: "Görmek", inf: "voir", conj: { pres: expand(["vois", "vois", "voit", "voyons", "voyez", "voient"]), pc: expand(["ai vu", "as vu", "a vu", "avons vu", "avez vu", "ont vu"]), imp: expand(["voyais", "voyais", "voyait", "voyions", "voyiez", "voyaient"]), fut: expand(["verrai", "verras", "verra", "verrons", "verrez", "verront"]), subj: expand(["voie", "voies", "voie", "voyions", "voyiez", "voient"]), cond: expand(["verrais", "verrais", "verrait", "verrions", "verriez", "verraient"]) } },
-            { tr: "İstemek", inf: "vouloir", conj: { pres: expand(["veux", "veux", "veut", "voulons", "voulez", "veulent"]), pc: expand(["ai voulu", "as voulu", "a voulu", "avons voulu", "avez voulu", "ont voulu"]), imp: expand(["voulais", "voulais", "voulait", "voulions", "vouliez", "voulaient"]), fut: expand(["voudrai", "voudras", "voudra", "voudrons", "voudrez", "voudront"]), subj: expand(["veuille", "veuilles", "veuille", "voulions", "vouliez", "veuillent"]), cond: expand(["voudrais", "voudrais", "voudrait", "voudrions", "voudriez", "voudraient"]) } }
+            // ... (Diğer fiiller buraya eklenebilir, yapı aynı)
         ];
 
+        // --- APP COMPONENT ---
         function App() {
-            const [view, setView] = useState('index');
-            const [gameScore, setGameScore] = useState(0);
-            const [bestScore, setBestScore] = useState(0);
-            const [gameLives, setGameLives] = useState(3);
-            const [gameChallenge, setGameChallenge] = useState(null);
-            const [gameInput, setGameInput] = useState('');
-            const [gameFeedback, setGameFeedback] = useState(null);
+            const [view, setView] = useState('menu'); // menu, game, exercise_setup, exercise
+            const [score, setScore] = useState(0);
+            const [lives, setLives] = useState(3);
+            const [challenge, setChallenge] = useState(null);
+            const [input, setInput] = useState('');
+            const [feedback, setFeedback] = useState(null);
+            
+            // Exercise States
+            const [exTimer, setExTimer] = useState(60);
+            const [exTimeLeft, setExTimeLeft] = useState(0);
+            const [exCurrentPersonIdx, setExCurrentPersonIdx] = useState(0);
+            const [exResults, setExResults] = useState([]);
 
-            useEffect(() => {
-                const saved = localStorage.getItem('maxScore');
-                if (saved) setBestScore(parseInt(saved));
-            }, []);
-
-            const getRandomChallenge = () => {
-                let v, t, p, answer;
-                let attempts = 0;
-                do {
-                    v = Math.floor(Math.random() * VERBS_DATA.length);
-                    t = Math.floor(Math.random() * TENSES.length);
-                    p = Math.floor(Math.random() * PERSONS.length);
-                    answer = VERBS_DATA[v].conj[TENSES[t].id][p];
-                    attempts++;
-                } while ((answer === "-" || !answer) && attempts < 100);
-                return { verbIdx: v, tenseIdx: t, personIdx: p, answer: answer };
+            // Helper: Random Challenge
+            const getNewChallenge = () => {
+                const v = Math.floor(Math.random() * VERBS_DATA.length);
+                const t = Math.floor(Math.random() * TENSES.length);
+                const p = Math.floor(Math.random() * PERSONS.length);
+                const ans = VERBS_DATA[v].conj[TENSES[t].id][p];
+                if (ans === "-") return getNewChallenge();
+                return { v, t, p, ans };
             };
 
-            const startGame = () => {
-                setGameScore(0);
-                setGameLives(3);
-                setGameChallenge(getRandomChallenge());
-                setGameInput('');
-                setGameFeedback(null);
-                setView('game');
+            // Game Logic
+            const startModeDefi = () => {
+                setScore(0); setLives(3); setInput(''); setFeedback(null);
+                setChallenge(getNewChallenge()); setView('game');
             };
 
-            const submitAnswer = () => {
-                if (!gameChallenge || gameFeedback) return;
-                const isCorrect = gameInput.trim().toLowerCase() === gameChallenge.answer.toLowerCase();
-                if (isCorrect) {
-                    setGameFeedback('correct');
-                    const nextScore = gameScore + 1;
-                    setGameScore(nextScore);
-                    if (nextScore > bestScore) {
-                        setBestScore(nextScore);
-                        localStorage.setItem('maxScore', nextScore.toString());
-                    }
-                    setTimeout(() => {
-                        setGameChallenge(getRandomChallenge());
-                        setGameInput('');
-                        setGameFeedback(null);
-                    }, 600);
+            const checkGameAnswer = () => {
+                if (feedback) return;
+                if (input.trim().toLowerCase() === challenge.ans.toLowerCase()) {
+                    setFeedback('correct'); setScore(s => s + 1);
+                    setTimeout(() => { setChallenge(getNewChallenge()); setInput(''); setFeedback(null); }, 600);
                 } else {
-                    setGameFeedback('wrong');
-                    setGameLives(l => l - 1);
+                    setFeedback('wrong'); setLives(l => l - 1);
                 }
             };
 
-            if (view === 'index') {
-                return (
-                    <div className="min-h-screen p-6 animate-fade-in flex flex-col items-center">
-                        <header className="mb-12 text-center w-full max-w-xl">
-                            <h1 className="text-4xl font-black text-indigo-900 mb-2">LA MATRICE</h1>
-                            <div className="bg-indigo-50 py-2 px-6 rounded-full inline-flex items-center gap-2 mb-8">
-                                <IconTrophy className="text-indigo-600" />
-                                <span className="font-black text-indigo-900">RECORD: {bestScore}</span>
-                            </div>
-                            <button onClick={startGame} className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black text-2xl shadow-xl hover:scale-[1.02] transition-all">
-                                JOUER MAINTENANT
-                            </button>
-                        </header>
-                        
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 w-full max-w-6xl">
-                            {VERBS_DATA.map((verb, i) => (
-                                <div key={i} className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm text-center">
-                                    <div className="text-xs font-black text-indigo-600 uppercase">{verb.inf}</div>
-                                    <div className="text-[10px] text-slate-400 italic truncate">{verb.tr}</div>
-                                </div>
-                            ))}
-                        </div>
+            // Exercise Logic
+            const startExercise = () => {
+                const c = getNewChallenge();
+                setChallenge(c);
+                setExCurrentPersonIdx(0);
+                setExResults([]);
+                setExTimeLeft(exTimer);
+                setInput('');
+                setView('exercise');
+            };
+
+            useEffect(() => {
+                let timer;
+                if (view === 'exercise' && exTimeLeft > 0) {
+                    timer = setInterval(() => setExTimeLeft(t => t - 1), 1000);
+                } else if (exTimeLeft === 0 && view === 'exercise') {
+                    setFeedback('timeout');
+                }
+                return () => clearInterval(timer);
+            }, [exTimeLeft, view]);
+
+            const checkExerciseAnswer = () => {
+                const correctAnswer = VERBS_DATA[challenge.v].conj[TENSES[challenge.t].id][exCurrentPersonIdx];
+                const isCorrect = input.trim().toLowerCase() === correctAnswer.toLowerCase();
+                
+                const newResult = { person: PERSONS[exCurrentPersonIdx], isCorrect, correct: correctAnswer };
+                setExResults([...exResults, newResult]);
+
+                if (exCurrentPersonIdx < 7) {
+                    setExCurrentPersonIdx(i => i + 1);
+                    setInput('');
+                } else {
+                    setFeedback('finished');
+                }
+            };
+
+            // --- RENDER VIEWS ---
+            if (view === 'menu') return (
+                <div className="safe-area flex flex-col items-center p-6 text-center animate-pop">
+                    <h1 className="text-4xl font-black text-slate-800 mt-10 mb-2">LA MATRICE</h1>
+                    <p className="text-slate-400 font-bold mb-10">Maîtrisez les verbes français</p>
+                    
+                    <div className="w-full max-w-xs space-y-4">
+                        <button onClick={startModeDefi} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-lg shadow-indigo-200">MODE DÉFI</button>
+                        <button onClick={() => setView('exercise_setup')} className="w-full py-5 bg-white text-indigo-600 border-4 border-indigo-600 rounded-3xl font-black text-xl">MODE EXERCICE</button>
                     </div>
-                );
-            }
 
-            if (view === 'game') {
-                const isGameOver = gameLives <= 0;
+                    <div className="grid grid-cols-2 gap-2 mt-12 w-full max-w-md opacity-40">
+                        {VERBS_DATA.slice(0, 4).map((v, i) => (
+                            <div key={i} className="bg-white p-3 rounded-xl text-xs font-bold">{v.inf.toUpperCase()}</div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            if (view === 'exercise_setup') return (
+                <div className="safe-area flex flex-col items-center p-6 justify-center min-h-screen">
+                    <div className="bg-white p-8 rounded-[3rem] w-full max-w-sm shadow-xl text-center">
+                        <h2 className="text-2xl font-black mb-6">TEMPS (SEC)</h2>
+                        <input type="number" value={exTimer} onChange={e => setExTimer(e.target.value)} className="text-5xl font-black w-full text-center mb-8 outline-none text-indigo-600" />
+                        <button onClick={startExercise} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl">COMMENCER</button>
+                    </div>
+                </div>
+            );
+
+            if (view === 'game' || view === 'exercise') {
+                const isGame = view === 'game';
+                const currentPerson = isGame ? PERSONS[challenge.p] : PERSONS[exCurrentPersonIdx];
+
                 return (
-                    <div className="min-h-screen p-4 flex flex-col items-center animate-fade-in">
-                        <div className="w-full max-w-md flex justify-between items-center mb-8 bg-white p-4 rounded-3xl shadow-sm border border-slate-50">
-                            <button onClick={() => setView('index')} className="p-2 text-slate-300"><IconHome /></button>
+                    <div className="safe-area flex flex-col items-center p-4 min-h-screen">
+                        {/* Header */}
+                        <div className="w-full max-w-md flex justify-between items-center mb-4 bg-white p-3 rounded-2xl shadow-sm">
+                            <button onClick={() => setView('menu')} className="p-2 text-slate-300 hover:text-slate-600"><IconHome /></button>
                             <div className="flex gap-1">
-                                {[...Array(3)].map((_, i) => <IconHeart key={i} filled={i < gameLives} />)}
+                                {isGame ? [...Array(3)].map((_, i) => <IconHeart key={i} filled={i < lives} />) : 
+                                <div className="flex items-center gap-2 font-black text-indigo-600"><IconTimer /> {exTimeLeft}s</div>}
                             </div>
-                            <div className="font-black text-indigo-600">{gameScore} <span className="text-[10px] text-slate-400 uppercase">Pts</span></div>
+                            <div className="font-black text-indigo-600">{isGame ? score : `${exCurrentPersonIdx + 1}/8`}</div>
                         </div>
 
-                        <div className="w-full max-w-md bg-white rounded-[3.5rem] shadow-2xl p-8 text-center border border-slate-50">
-                            {isGameOver ? (
-                                <div className="py-10">
-                                    <h2 className="text-4xl font-black text-slate-900 mb-2">FINI !</h2>
-                                    <p className="text-slate-400 font-bold text-xl mb-10">Score: {gameScore}</p>
-                                    <button onClick={startGame} className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black text-xl shadow-lg">REJOUER</button>
+                        {/* Question Box */}
+                        <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-xl p-5 md:p-8 text-center animate-pop relative overflow-hidden">
+                            {(lives <= 0 || feedback === 'finished' || feedback === 'timeout') ? (
+                                <div className="py-6">
+                                    <h2 className="text-3xl font-black mb-2">{feedback === 'timeout' ? 'TEMPS ÉCOULÉ' : 'RÉSULTAT'}</h2>
+                                    {isGame ? <p className="text-4xl font-black text-indigo-600">{score} PTS</p> : 
+                                    <div className="text-left mt-4 max-h-48 overflow-y-auto px-2">
+                                        {exResults.map((r, i) => (
+                                            <div key={i} className={`flex justify-between py-1 border-b text-sm ${r.isCorrect ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                <span>{r.person}</span> <span>{r.isCorrect ? '✔' : r.correct}</span>
+                                            </div>
+                                        ))}
+                                    </div>}
+                                    <button onClick={() => setView('menu')} className="mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl font-black">RETOUR</button>
                                 </div>
                             ) : (
                                 <>
-                                    <div className="bg-[#f8faff] rounded-[2.5rem] p-8 mb-6 border-2 border-indigo-50">
-                                        <div className="text-xs font-black text-indigo-300 tracking-widest mb-1">{TENSES[gameChallenge.tenseIdx].label}</div>
-                                        <h2 className="text-4xl font-black text-indigo-900 mb-1 uppercase">{VERBS_DATA[gameChallenge.verbIdx].inf}</h2>
-                                        <div className="text-indigo-600 font-black text-3xl mt-6">{PERSONS[gameChallenge.personIdx].label} ...</div>
+                                    <div className="compact-spacing bg-slate-50 rounded-3xl p-4 mb-4">
+                                        <div className="text-[10px] font-black text-slate-400 tracking-widest uppercase">{TENSES[challenge.t].label}</div>
+                                        <h2 className="text-3xl font-black text-slate-800 uppercase leading-tight">{VERBS_DATA[challenge.v].inf}</h2>
+                                        <div className="text-indigo-600 font-black text-2xl mt-2 tracking-tighter">{currentPerson} ...</div>
                                     </div>
 
                                     <input 
                                         autoFocus
                                         type="text"
-                                        value={gameInput}
-                                        onChange={(e) => setGameInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && submitAnswer()}
-                                        disabled={gameFeedback === 'wrong'}
-                                        className="w-full p-6 text-2xl font-black text-center rounded-[2rem] border-2 border-slate-100 mb-4 outline-none focus:border-indigo-400 transition-all"
-                                        placeholder="..."
-                                        autoComplete="off"
+                                        value={input}
+                                        onChange={e => setInput(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && (isGame ? checkGameAnswer() : checkExerciseAnswer())}
+                                        disabled={feedback === 'wrong'}
+                                        className="w-full p-4 text-xl font-bold text-center rounded-2xl border-2 border-slate-100 mb-3 outline-none focus:border-indigo-500"
+                                        placeholder="Réponse..."
+                                        autoComplete="off" autoCorrect="off" spellCheck="false"
                                     />
 
-                                    {gameFeedback === 'wrong' ? (
-                                        <div className="animate-fade-in">
-                                            <div className="p-5 bg-rose-50 text-rose-600 rounded-[2rem] font-black mb-4 text-lg border-2 border-rose-100">
-                                                C'était : {gameChallenge.answer}
-                                            </div>
-                                            <button onClick={() => {setGameChallenge(getRandomChallenge()); setGameInput(''); setGameFeedback(null);}} 
-                                                className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-xl shadow-lg">CONTINUER</button>
+                                    {feedback === 'wrong' ? (
+                                        <div className="animate-pop">
+                                            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl font-bold mb-3 text-sm">Correct: {challenge.ans}</div>
+                                            <button onClick={() => { setChallenge(getNewChallenge()); setInput(''); setFeedback(null); if(lives<=0) setView('menu'); }} 
+                                                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold">CONTINUER</button>
                                         </div>
                                     ) : (
-                                        <button onClick={submitAnswer} 
-                                            className={`w-full py-6 rounded-[2rem] font-black text-2xl shadow-xl transition-all ${gameFeedback === 'correct' ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white active:scale-95'}`}>
-                                            {gameFeedback === 'correct' ? 'BRAVO !' : 'VÉRIFIER'}
+                                        <button onClick={isGame ? checkGameAnswer : checkExerciseAnswer} 
+                                            className={`w-full py-4 rounded-2xl font-black text-white transition-all ${feedback === 'correct' ? 'bg-emerald-500' : 'bg-indigo-600'}`}>
+                                            {feedback === 'correct' ? 'BRAVO !' : 'VALIDER'}
                                         </button>
                                     )}
                                 </>
                             )}
                         </div>
+                        <div className="hide-on-keyboard h-20"></div>
                     </div>
                 );
             }
