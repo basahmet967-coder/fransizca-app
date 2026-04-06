@@ -15,7 +15,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        .animate-bounce-short { animation: bounce 0.5s ease-in-out 1; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -23,7 +22,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect } = React;
 
         // --- ICONS ---
         const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -32,17 +31,15 @@
         const IconX = ({ size = 24, strokeWidth = 2, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
         const IconChevronLeft = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
         const IconArrowRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
-        const IconEye = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
-        const IconTrophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="gold" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><circle cx="12" cy="10" r="8"/></svg>;
+        const IconTrophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="gold" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
         const IconHeart = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#ef4444" : "none"} stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
 
-        // --- VERBS DATA ---
         const VERBS_DATA = [
             { tr: "Satın Almak", inf: "acheter", conjugations: { pres: ["achète", "achètes", "achète", "achetons", "achetez", "achètent"], pc: ["ai acheté", "as acheté", "a acheté", "avons acheté", "avez acheté", "ont acheté"], imp: ["achetais", "achetais", "achetait", "achetions", "achetiez", "achetaient"], fut: ["achèterai", "achèteras", "achètera", "achèterons", "achèterez", "achèteront"], subj: ["achète", "achètes", "achète", "achetions", "achetiez", "achètent"], cond: ["achèterais", "achèterais", "achèterait", "achèterions", "achèteriez", "achèteraient"] } },
             { tr: "Sevmek", inf: "aimer", conjugations: { pres: ["aime", "aimes", "aime", "aimons", "aimez", "aiment"], pc: ["ai aimé", "as aimé", "a aimé", "avons aimé", "avez aimé", "ont aimé"], imp: ["aimais", "aimais", "aimait", "aimions", "aimiez", "aimaient"], fut: ["aimerai", "aimeras", "aimera", "aimerons", "aimerez", "aimeront"], subj: ["aime", "aimes", "aime", "aimions", "aimiez", "aiment"], cond: ["aimerais", "aimerais", "aimerait", "aimerions", "aimeriez", "aimeraient"] } },
             { tr: "Gitmek", inf: "aller", conjugations: { pres: ["vais", "vas", "va", "allons", "allez", "vont"], pc: ["suis allé", "es allé", "est allé", "sommes allés", "êtes allés", "sont allés"], imp: ["allais", "allais", "allait", "allions", "alliez", "allaient"], fut: ["irai", "iras", "ira", "irons", "irez", "iront"], subj: ["aille", "ailles", "aille", "allions", "alliez", "aillent"], cond: ["irais", "irais", "irait", "irions", "iriez", "iraient"] } },
             { tr: "Aramak / Seslenmek", inf: "appeler", conjugations: { pres: ["appelle", "appelles", "appelle", "appelons", "appelez", "appellent"], pc: ["ai appelé", "as appelé", "a appelé", "avons appelé", "avez appelé", "ont appelé"], imp: ["appelais", "appelais", "appelait", "appelions", "appeliez", "appelaient"], fut: ["appellerai", "appelleras", "appellera", "appellerons", "appellerez", "appelleront"], subj: ["appelle", "appelles", "appelle", "appelions", "appeliez", "appellent"], cond: ["appellerais", "appellerais", "appellerait", "appellerions", "appelleriez", "appelleraient"] } },
-            { tr: "Öğrenmek", inf: "apprendre", conjugations: { pres: ["apprends", "apprends", "apprend", "apprenons", "apprenez", "apprennent"], pc: ["ai appris", "as appris", "a appris", "avons appris", "avez appris", "ont appris"], imp: ["apprenais", "apprenais", "apprenait", "apprenions", "appreniez", "apprenaient"], fut: ["apprendrai", "apprendras", "apprendra", "apprendrons", "apprendrez", "apprendront"], subj: ["apprenne", "apprennes", "apprenne", "apprenions", "appreniez", "apprennent"], cond: ["apprendrais", "apprendrais", "apprendrait", "apprendrions", "apprendriez", "apprendrais"] } },
+            { tr: "Öğrenmek", inf: "apprendre", conjugations: { pres: ["apprends", "apprends", "apprend", "apprenons", "apprenez", "apprennent"], pc: ["ai appris", "as appris", "a appris", "avons appris", "avez appris", "ont appris"], imp: ["apprenais", "apprenais", "apprenait", "apprenions", "appreniez", "apprenaient"], fut: ["apprendrai", "apprendras", "apprendra", "apprendrons", "apprendrez", "apprendront"], subj: ["apprenne", "apprennes", "apprenne", "apprenions", "appreniez", "apprennent"], cond: ["apprendrais", "apprendrais", "apprendrait", "apprendrions", "apprendriez", "apprendraient"] } },
             { tr: "Varmak", inf: "arriver", conjugations: { pres: ["arrive", "arrives", "arrive", "arrivons", "arrivez", "arrivent"], pc: ["suis arrivé", "es arrivé", "est arrivé", "sommes arrivés", "êtes arrivés", "sont arrivés"], imp: ["arrivais", "arrivais", "arrivait", "arrivions", "arriviez", "arrivaient"], fut: ["arriverai", "arriveras", "arrivera", "arriverons", "arriverez", "arriveront"], subj: ["arrive", "arrives", "arrive", "arrivions", "arriviez", "arrivent"], cond: ["arriverais", "arriverais", "arriverait", "arriverions", "arriveriez", "arriveraient"] } },
             { tr: "Beklemek", inf: "attendre", conjugations: { pres: ["attends", "attends", "attend", "attendons", "attendez", "attendent"], pc: ["ai attendu", "as attendu", "a attendu", "avons attendu", "avez attendu", "ont attendu"], imp: ["attendais", "attendais", "attendait", "attendions", "attendiez", "attendaient"], fut: ["attendrai", "attendras", "attendra", "attendrons", "attendrez", "attendront"], subj: ["attende", "attendes", "attende", "attendions", "attendiez", "attendent"], cond: ["attendrais", "attendrais", "attendrait", "attendrions", "attendriez", "attendraient"] } },
             { tr: "Sahip Olmak", inf: "avoir", conjugations: { pres: ["ai", "as", "a", "avons", "avez", "ont"], pc: ["ai eu", "as eu", "a eu", "avons eu", "avez eu", "ont eu"], imp: ["avais", "avais", "avait", "avions", "aviez", "avaient"], fut: ["aurai", "auras", "aura", "aurons", "aurez", "auront"], subj: ["aie", "aies", "ait", "ayons", "ayez", "aient"], cond: ["aurais", "aurais", "aurait", "aurions", "auriez", "auraient"] } },
@@ -50,8 +47,8 @@
             { tr: "Başlamak", inf: "commencer", conjugations: { pres: ["commence", "commences", "commence", "commençons", "commencez", "commencent"], pc: ["ai commencé", "as commencé", "a commencé", "avons commencé", "avez commencé", "ont commencé"], imp: ["commençais", "commençais", "commençait", "commencions", "commenciez", "commençaient"], fut: ["commencerai", "commenceras", "commencera", "commencerons", "commencerez", "commenceront"], subj: ["commence", "commences", "commence", "commencions", "commenciez", "commencent"], cond: ["commencerais", "commencerais", "commencerait", "commencerions", "commenceriez", "commenceraient"] } },
             { tr: "Anlamak", inf: "comprendre", conjugations: { pres: ["comprends", "comprends", "comprend", "comprenons", "comprenez", "comprennent"], pc: ["ai compris", "as compris", "a compris", "avons compris", "avez compris", "ont compris"], imp: ["comprenais", "comprenais", "comprenait", "comprenions", "compreniez", "comprenaient"], fut: ["comprendrai", "comprendras", "comprendra", "comprendrons", "comprendrez", "comprendront"], subj: ["comprenne", "comprennes", "comprenne", "comprenions", "compreniez", "comprennent"], cond: ["comprendrais", "comprendrais", "comprendrait", "comprendrions", "comprendriez", "comprendraient"] } },
             { tr: "Tanımak", inf: "connaître", conjugations: { pres: ["connais", "connais", "connaît", "connaissons", "connaissez", "connaissent"], pc: ["ai connu", "as connu", "a connu", "avons connu", "avez connu", "ont connu"], imp: ["connaissais", "connaissais", "connaissait", "connaissions", "connaissiez", "connaissaient"], fut: ["connaîtrai", "connaîtras", "connaîtra", "connaîtrons", "connaîtrez", "connaîtront"], subj: ["connaisse", "connaisses", "connaisse", "connaissions", "connaissiez", "connaissent"], cond: ["connaîtrais", "connaîtrais", "connaîtrait", "connaîtrions", "connaîtriez", "connaîtraient"] } },
-            { tr: "İnanmak", inf: "croire", conjugations: { pres: ["crois", "crois", "croit", "croyons", "croyez", "croient"], pc: ["ai cru", "as cru", "a cru", "avons cru", "avez cru", "ont cru"], imp: ["croyais", "croyais", "croyait", "croyions", "croyiez", "croyaient"], fut: ["croirai", "croiras", "croira", "croirez", "croiront"], subj: ["croie", "croies", "croie", "croyions", "croyiez", "croient"], cond: ["croirais", "croirais", "croirait", "croirions", "croiriez", "croiraient"] } },
-            { tr: "Sormak / İstemek", inf: "demander", conjugations: { pres: ["demande", "demandes", "demande", "demandons", "demandez", "demandent"], pc: ["ai demandé", "as demandé", "a demandé", "avons demandé", "avez demandé", "ont demandé"], imp: ["demandais", "demandais", "demandait", "demandions", "demandiez", "demandaient"], fut: ["demanderai", "demanderas", "demandera", "demanderons", "demanderez", "demanderont"], subj: ["demande", "demandes", "demande", "demandions", "demandiez", "demander", "cond": ["demanderais", "demanderais", "demanderait", "demanderions", "demanderiez", "demanderaient"] } },
+            { tr: "İnanmak", inf: "croire", conjugations: { pres: ["crois", "crois", "croit", "croyons", "croyez", "croient"], pc: ["ai cru", "as cru", "a cru", "avons cru", "avez cru", "ont cru"], imp: ["croyais", "croyais", "croyait", "croyions", "croyiez", "croyaient"], fut: ["croirai", "croiras", "croira", "croirons", "croirez", "croiront"], subj: ["croie", "croies", "croie", "croyions", "croyiez", "croient"], cond: ["croirais", "croirais", "croirait", "croirions", "croiriez", "croiraient"] } },
+            { tr: "Sormak / İstemek", inf: "demander", conjugations: { pres: ["demande", "demandes", "demande", "demandons", "demandez", "demandent"], pc: ["ai demandé", "as demandé", "a demandé", "avons demandé", "avez demandé", "ont demandé"], imp: ["demandais", "demandais", "demandait", "demandions", "demandiez", "demandaient"], fut: ["demanderai", "demanderas", "demandera", "demanderons", "demanderez", "demanderont"], subj: ["demande", "demandes", "demande", "demandions", "demandiez", "demandent"], cond: ["demanderais", "demanderais", "demanderait", "demanderions", "demanderiez", "demanderaient"] } },
             { tr: "Zorunda Olmak", inf: "devoir", conjugations: { pres: ["dois", "dois", "doit", "devons", "devez", "doivent"], pc: ["ai dû", "as dû", "a dû", "avons dû", "avez dû", "ont dû"], imp: ["devais", "devais", "devait", "devions", "deviez", "devaient"], fut: ["devrai", "devras", "devra", "devrons", "devrez", "devront"], subj: ["doive", "doives", "doive", "devions", "deviez", "doivent"], cond: ["devrais", "devrais", "devrait", "devrions", "devriez", "devraient"] } },
             { tr: "Söylemek", inf: "dire", conjugations: { pres: ["dis", "dis", "dit", "disons", "dites", "disent"], pc: ["ai dit", "as dit", "a dit", "avons dit", "avez dit", "ont dit"], imp: ["disais", "disais", "disait", "disions", "disiez", "disaient"], fut: ["dirai", "diras", "dira", "dirons", "direz", "diront"], subj: ["dise", "dises", "dise", "disions", "disiez", "disent"], cond: ["dirais", "dirais", "dirait", "dirions", "diriez", "diraient"] } },
             { tr: "Vermek", inf: "donner", conjugations: { pres: ["donne", "donnes", "donne", "donnons", "donnez", "donnent"], pc: ["ai donné", "as donné", "a donné", "avons donné", "avez donné", "ont donné"], imp: ["donnais", "donnais", "donnait", "donnions", "donniez", "donnaient"], fut: ["donnerai", "donneras", "donnera", "donnerons", "donnerez", "donneront"], subj: ["donne", "donnes", "donne", "donnions", "donniez", "donnent"], cond: ["donnerais", "donnerais", "donnerait", "donnerions", "donneriez", "donneraient"] } },
@@ -81,7 +78,7 @@
             { tr: "Bilmek", inf: "savoir", conjugations: { pres: ["sais", "sais", "sait", "savons", "savez", "savent"], pc: ["ai su", "as su", "a su", "avons su", "avez su", "ont su"], imp: ["savais", "savais", "savait", "savions", "saviez", "savaient"], fut: ["saurai", "sauras", "saura", "saurons", "saurez", "sauront"], subj: ["sache", "saches", "sache", "sachions", "sachiez", "sachent"], cond: ["saurais", "saurais", "saurait", "saurions", "sauriez", "sauraient"] } },
             { tr: "Hissetmek", inf: "sentir", conjugations: { pres: ["sens", "sens", "sent", "sentons", "sentez", "sentent"], pc: ["ai senti", "as senti", "a senti", "avons senti", "avez senti", "ont senti"], imp: ["sentais", "sentais", "sentait", "sentions", "sentiez", "sentaient"], fut: ["sentirai", "sentiras", "sentira", "sentirons", "sentirez", "sentiront"], subj: ["sente", "sentes", "sente", "sentions", "sentiez", "sentent"], cond: ["sentirais", "sentirais", "sentirait", "sentirions", "sentiriez", "sentiraient"] } },
             { tr: "Dışarı Çıkmak", inf: "sortir", conjugations: { pres: ["sors", "sors", "sort", "sortons", "sortez", "sortent"], pc: ["suis sorti", "es sorti", "est sorti", "sommes sortis", "êtes sortis", "sont sortis"], imp: ["sortais", "sortais", "sortait", "sortions", "sortiez", "sortaient"], fut: ["sortirai", "sortiras", "sortira", "sortirons", "sortirez", "sortiront"], subj: ["sorte", "sortes", "sorte", "sortions", "sortiez", "sortent"], cond: ["sortirais", "sortirais", "sortirait", "sortirions", "sortiriez", "sortiraient"] } },
-            { tr: "Tutmak", inf: "tenir", conjugations: { pres: ["tiens", "tiens", "tient", "tenons", "tenez", "tiennent"], pc: ["ai tenu", "as tenu", "a tenu", "avons tenu", "avez tenu", "ont tenu"], imp: ["tenais", "tenais", "tenait", "tenions", "teniez", "tenaient"], fut: ["tiendrai", "tiendras", "tiendra", "tiendrons", "tiendrez", "tiendront"], subj: ["tienne", "tiennes", "tienne", "tenions", "teniez", "tiennent"], cond: ["tiendrais", "tiendrais", "tiendrais", "tiendrions", "tiendriez", "tiendraient"] } },
+            { tr: "Tutmak", inf: "tenir", conjugations: { pres: ["tiens", "tiens", "tient", "tenons", "tenez", "tiennent"], pc: ["ai tenu", "as tenu", "a tenu", "avons tenu", "avez tenu", "ont tenu"], imp: ["tenais", "tenais", "tenait", "tenions", "teniez", "tenaient"], fut: ["tiendrai", "tiendras", "tiendra", "tiendrons", "tiendrez", "tiendront"], subj: ["tienne", "tiennes", "tienne", "tenions", "teniez", "tiennent"], cond: ["tiendrais", "tiendrais", "tiendrait", "tiendrions", "tiendriez", "tiendraient"] } },
             { tr: "Çalışmak", inf: "travailler", conjugations: { pres: ["travaille", "travailles", "travaille", "travaillons", "travaillez", "travaillent"], pc: ["ai travaillé", "as travaillé", "a travaillé", "avons travaillé", "avez travaillé", "ont travaillé"], imp: ["travaillais", "travaillais", "travaillait", "travaillions", "travailliez", "travaillaient"], fut: ["travaillerai", "travailleras", "travaillera", "travaillerons", "travaillerez", "travailleront"], subj: ["travaille", "travailles", "travaille", "travaillions", "travailliez", "travaillent"], cond: ["travaillerais", "travaillerais", "travaillerait", "travaillerions", "travailleriez", "travailleraient"] } },
             { tr: "Bulmak", inf: "trouver", conjugations: { pres: ["trouve", "trouves", "trouve", "trouvons", "trouvez", "trouvent"], pc: ["ai trouvé", "as trouvé", "a trouvé", "avons trouvé", "avez trouvé", "ont trouvé"], imp: ["trouvais", "trouvais", "trouvait", "trouvions", "trouviez", "trouvaient"], fut: ["trouverai", "trouveras", "trouvera", "trouverons", "trouverez", "trouveront"], subj: ["trouve", "trouves", "trouve", "trouvions", "trouviez", "trouvent"], cond: ["trouverais", "trouverais", "trouverait", "trouverions", "trouveriez", "trouveraient"] } },
             { tr: "Gelmek", inf: "venir", conjugations: { pres: ["viens", "viens", "vient", "venons", "venez", "viennent"], pc: ["suis venu", "es venu", "est venu", "sommes venus", "êtes venus", "sont venus"], imp: ["venais", "venais", "venait", "venions", "veniez", "venaient"], fut: ["viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront"], subj: ["vienne", "viennes", "vienne", "venions", "veniez", "viennent"], cond: ["viendrais", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient"] } },
@@ -125,7 +122,6 @@
             // Utils
             const getRandomChallenge = () => {
                 let v, t, p, answer;
-                // Loop to skip "-" values (like for falloir)
                 do {
                     v = Math.floor(Math.random() * VERBS_DATA.length);
                     t = Math.floor(Math.random() * TENSES.length);
@@ -147,7 +143,6 @@
 
             const submitGameAnswer = () => {
                 if (!gameChallenge || gameFeedback) return;
-                
                 const isCorrect = gameInput.trim().toLowerCase() === gameChallenge.answer.toLowerCase();
                 
                 if (isCorrect) {
@@ -170,7 +165,6 @@
                 setGameFeedback(null);
             };
 
-            // Reset practice showAnswers on navigation
             useEffect(() => { setShowAllCorrect(false); }, [currentVerbIdx, currentTenseIdx, view]);
 
             // --- RENDER: HOME ---
@@ -181,12 +175,10 @@
                             <header className="mb-12 text-center">
                                 <h1 className="text-5xl font-black text-indigo-900 mb-4 tracking-tight">La Matrice des Verbes</h1>
                                 <p className="text-slate-500 text-lg mb-8 italic">Maîtrisez la conjugaison par la pratique ou le jeu.</p>
-                                
-                                <button onClick={startGame} className="group relative px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-2xl shadow-xl hover:bg-indigo-700 transition-all flex items-center gap-3 mx-auto">
+                                <button onClick={startGame} className="px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-2xl shadow-xl hover:bg-indigo-700 transition-all flex items-center gap-3 mx-auto">
                                     <IconTrophy /> MODE DÉFI (JEU)
                                 </button>
                             </header>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {VERBS_DATA.map((verb, vIdx) => (
                                     <div key={vIdx} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
@@ -224,67 +216,41 @@
                     <div className="min-h-screen p-4 flex items-center justify-center animate-fade-in">
                         <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
                             <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
-                                <button onClick={() => setView('index')} className="text-slate-400 hover:text-white transition-colors"><IconHome /></button>
+                                <button onClick={() => setView('index')} className="text-slate-400 hover:text-white"><IconHome /></button>
                                 <div className="flex items-center gap-1">
                                     {[...Array(3)].map((_, i) => <IconHeart key={i} filled={i < gameLives} />)}
                                 </div>
                                 <div className="font-black text-xl text-emerald-400">{gameScore} PTS</div>
                             </div>
-
                             {isGameOver ? (
-                                <div className="p-12 text-center animate-fade-in">
+                                <div className="p-12 text-center">
                                     <div className="mb-6 inline-block p-6 bg-rose-50 text-rose-500 rounded-full"><IconX size={64} /></div>
                                     <h2 className="text-4xl font-black text-slate-900 mb-2">PERDU !</h2>
                                     <p className="text-slate-500 font-bold mb-8 text-xl">Score Final : {gameScore}</p>
-                                    <div className="flex flex-col gap-4">
-                                        <button onClick={startGame} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl hover:bg-indigo-700">REJOUER</button>
-                                        <button onClick={() => setView('index')} className="w-full py-5 bg-slate-100 text-slate-600 rounded-2xl font-black">MENU PRINCIPAL</button>
-                                    </div>
+                                    <button onClick={startGame} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl">REJOUER</button>
                                 </div>
                             ) : (
-                                <div className="p-8 md:p-12 text-center">
-                                    <div className="mb-4 text-sm font-black text-indigo-600 uppercase tracking-widest">{tense.label}</div>
+                                <div className="p-8 text-center">
+                                    <div className="text-sm font-black text-indigo-600 uppercase tracking-widest">{tense.label}</div>
                                     <h2 className="text-5xl font-black text-slate-900 mb-2">{verb.inf.toUpperCase()}</h2>
                                     <p className="text-slate-400 font-medium italic mb-10">{verb.tr}</p>
-                                    
                                     <div className="mb-8">
                                         <div className="text-left text-xs font-black text-slate-400 uppercase mb-2 ml-2">Sujet : {person.label}</div>
-                                        <div className="relative">
-                                            <input 
-                                                autoFocus
-                                                type="text" 
-                                                value={gameInput} 
-                                                onChange={(e) => setGameInput(e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && submitGameAnswer()}
-                                                disabled={gameFeedback === 'wrong'}
-                                                className={`w-full p-6 text-2xl font-black text-center rounded-3xl border-4 outline-none transition-all 
-                                                    ${gameFeedback === 'correct' ? 'border-emerald-400 bg-emerald-50' : 
-                                                      gameFeedback === 'wrong' ? 'border-rose-400 bg-rose-50' : 'border-slate-100 focus:border-indigo-500'}`}
-                                                placeholder="..."
-                                            />
-                                            {gameFeedback && (
-                                                <div className="mt-4 animate-fade-in">
-                                                    {gameFeedback === 'correct' ? (
-                                                        <div className="text-emerald-500 font-black flex items-center justify-center gap-2">Bravo ! <IconCheck size={20} strokeWidth={4} /></div>
-                                                    ) : (
-                                                        <div>
-                                                            <div className="text-rose-500 font-black mb-2">Aïe ! Ce n'est pas ça.</div>
-                                                            <div className="p-4 bg-indigo-50 text-indigo-700 rounded-2xl font-bold text-lg mb-4 tracking-wide">
-                                                                Solution : {gameChallenge.answer}
-                                                            </div>
-                                                            <button onClick={nextGameQuestion} className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold">CONTINUER</button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
+                                        <input autoFocus type="text" value={gameInput} onChange={(e) => setGameInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitGameAnswer()} disabled={gameFeedback === 'wrong'}
+                                            className={`w-full p-6 text-2xl font-black text-center rounded-3xl border-4 outline-none ${gameFeedback === 'correct' ? 'border-emerald-400 bg-emerald-50' : gameFeedback === 'wrong' ? 'border-rose-400 bg-rose-50' : 'border-slate-100 focus:border-indigo-500'}`} placeholder="..." />
+                                        {gameFeedback && (
+                                            <div className="mt-4">
+                                                {gameFeedback === 'correct' ? <div className="text-emerald-500 font-black">Bravo !</div> : (
+                                                    <div>
+                                                        <div className="text-rose-500 font-black mb-2">Faux !</div>
+                                                        <div className="p-4 bg-indigo-50 text-indigo-700 rounded-2xl font-bold mb-4">Solution : {gameChallenge.answer}</div>
+                                                        <button onClick={nextGameQuestion} className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold">CONTINUER</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-
-                                    {!gameFeedback && (
-                                        <button onClick={submitGameAnswer} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all">
-                                            VÉRIFIER
-                                        </button>
-                                    )}
+                                    {!gameFeedback && <button onClick={submitGameAnswer} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg">VÉRIFIER</button>}
                                 </div>
                             )}
                         </div>
@@ -292,67 +258,46 @@
                 );
             }
 
-            // --- RENDER: PRACTICE MODE ---
-            const practiceVerb = VERBS_DATA[currentVerbIdx];
-            const practiceTense = TENSES[currentTenseIdx];
-            const practiceKey = `${currentVerbIdx}-${currentTenseIdx}`;
-            const isPracticeChecked = checked[practiceKey];
-
+            // --- RENDER: PRACTICE ---
             return (
                 <div className="min-h-screen p-4 md:p-8 animate-fade-in">
                     <div className="max-w-4xl mx-auto">
                         <div className="mb-6 flex items-center justify-between">
-                            <button onClick={() => setView('index')} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-600 font-bold hover:bg-slate-50"><IconHome /> Menu</button>
-                            <div className="text-xs font-black text-slate-400 bg-white px-3 py-1 rounded-full border border-slate-100">{currentVerbIdx + 1} / {VERBS_DATA.length}</div>
+                            <button onClick={() => setView('index')} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-600 font-bold"><IconHome /> Menu</button>
                         </div>
-                        
                         <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
                             <div className="p-8 bg-indigo-600 text-white text-center">
-                                <h1 className="text-4xl font-black mb-1">{practiceVerb.inf.toUpperCase()}</h1>
-                                <p className="text-indigo-100 text-lg opacity-80 italic">{practiceVerb.tr}</p>
-                                <div className="mt-6 inline-block bg-white/10 px-6 py-2 rounded-full border border-white/10 font-black text-sm uppercase">{practiceTense.label}</div>
+                                <h1 className="text-4xl font-black mb-1">{VERBS_DATA[currentVerbIdx].inf.toUpperCase()}</h1>
+                                <p className="text-indigo-100 text-lg opacity-80 italic">{VERBS_DATA[currentVerbIdx].tr}</p>
+                                <div className="mt-6 inline-block bg-white/10 px-6 py-2 rounded-full border border-white/10 font-black text-sm uppercase">{TENSES[currentTenseIdx].label}</div>
                             </div>
-
                             <div className="p-8 md:p-12">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                                     {PERSONS.map((person) => {
-                                        const key = `${practiceKey}-${person.index}`;
-                                        const correctVal = practiceVerb.conjugations[practiceTense.id][person.index].toLowerCase();
+                                        const key = `${currentVerbIdx}-${currentTenseIdx}-${person.index}`;
+                                        const correctVal = VERBS_DATA[currentVerbIdx].conjugations[TENSES[currentTenseIdx].id][person.index].toLowerCase();
                                         const isCorrect = (answers[key] || "").trim().toLowerCase() === correctVal;
-                                        const isMissing = correctVal === "-";
-
-                                        if (isMissing) return <div key={person.index} className="opacity-20 flex flex-col gap-2"><label className="text-[10px] font-black uppercase">{person.label}</label><div className="p-4 bg-slate-100 rounded-2xl text-center font-bold">-</div></div>;
-
+                                        if (correctVal === "-") return <div key={person.index} className="opacity-20"><label className="text-[10px] font-black uppercase">{person.label}</label><div className="p-4 bg-slate-100 rounded-2xl text-center">-</div></div>;
                                         return (
                                             <div key={person.index} className="flex flex-col gap-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase">{person.label}</label>
                                                 <div className="relative">
-                                                    <input 
-                                                        type="text" 
-                                                        value={showAllCorrect ? correctVal : (answers[key] || "")} 
-                                                        onChange={(e) => setAnswers(p => ({...p, [key]: e.target.value}))} 
-                                                        disabled={isPracticeChecked} 
-                                                        className={`w-full p-4 rounded-2xl border-2 outline-none transition-all text-xl font-bold ${!isPracticeChecked ? 'border-slate-100 bg-slate-50/50 focus:border-indigo-500' : (isCorrect || showAllCorrect) ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-100 bg-rose-50 text-rose-800'}`} 
-                                                    />
-                                                    {isPracticeChecked && <div className="absolute right-4 top-1/2 -translate-y-1/2">{(isCorrect || showAllCorrect) ? <IconCheck size={24} strokeWidth={4} className="text-emerald-500" /> : <IconX size={24} strokeWidth={4} className="text-rose-400" />}</div>}
+                                                    <input type="text" value={showAllCorrect ? correctVal : (answers[key] || "")} onChange={(e) => setAnswers(p => ({...p, [key]: e.target.value}))} disabled={checked[`${currentVerbIdx}-${currentTenseIdx}`]} className={`w-full p-4 rounded-2xl border-2 outline-none ${!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? 'border-slate-100 focus:border-indigo-500' : (isCorrect || showAllCorrect) ? 'border-emerald-200 bg-emerald-50' : 'border-rose-100 bg-rose-50'}`} />
+                                                    {checked[`${currentVerbIdx}-${currentTenseIdx}`] && <div className="absolute right-4 top-1/2 -translate-y-1/2">{(isCorrect || showAllCorrect) ? <IconCheck size={24} className="text-emerald-500" /> : <IconX size={24} className="text-rose-400" />}</div>}
                                                 </div>
-                                                {isPracticeChecked && !isCorrect && !showAllCorrect && <div className="mt-1 px-4 py-2 bg-indigo-50 rounded-xl text-xs font-black text-indigo-600 animate-fade-in">La réponse: {correctVal}</div>}
+                                                {checked[`${currentVerbIdx}-${currentTenseIdx}`] && !isCorrect && !showAllCorrect && <div className="mt-1 text-xs font-black text-indigo-600">La réponse: {correctVal}</div>}
                                             </div>
                                         );
                                     })}
                                 </div>
-
-                                <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="mt-12 flex justify-between items-center">
                                     <button onClick={() => { if (currentTenseIdx > 0) setCurrentTenseIdx(p => p - 1); else if (currentVerbIdx > 0) { setCurrentVerbIdx(v => v - 1); setCurrentTenseIdx(TENSES.length - 1); } }} className="text-slate-400 font-black flex items-center gap-2"><IconChevronLeft /> Précédent</button>
-                                    {!isPracticeChecked ? (
-                                        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                                            <button onClick={() => setChecked(p => ({...p, [practiceKey]: true}))} className="px-12 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl hover:-translate-y-1 transition-all">Vérifier</button>
-                                            <button onClick={() => {setShowAllCorrect(true); setChecked(p => ({...p, [practiceKey]: true}));}} className="flex items-center justify-center gap-2 px-6 py-5 bg-slate-100 text-slate-600 rounded-2xl font-black text-sm"><IconEye /> Solutions</button>
+                                    {!checked[`${currentVerbIdx}-${currentTenseIdx}`] ? (
+                                        <div className="flex gap-4">
+                                            <button onClick={() => setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}))} className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl">Vérifier</button>
+                                            <button onClick={() => {setShowAllCorrect(true); setChecked(p => ({...p, [`${currentVerbIdx}-${currentTenseIdx}`]: true}));}} className="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-sm">Solutions</button>
                                         </div>
-                                    ) : (
-                                        <button onClick={handleNext} className="w-full md:w-auto px-16 py-5 bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-xl flex items-center justify-center gap-3">Continuer <IconArrowRight /></button>
-                                    )}
-                                    <div className="hidden md:block w-[100px]"></div>
+                                    ) : <button onClick={handleNext} className="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-xl flex items-center gap-3">Continuer <IconArrowRight /></button>}
                                 </div>
                             </div>
                         </div>
