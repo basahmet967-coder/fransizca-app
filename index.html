@@ -38,7 +38,7 @@
         const IconRefresh = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>;
         const IconSort = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;
 
-        // Fiil Verileri (Rank: Kullanım sıklığı sırası)
+        // Données des verbes
         const VERBS_DATA = [
     { rank: 1, tr: "Être", inf: "être", conjugations: { pres: ["suis", "es", "est", "sommes", "êtes", "sont"], pc: ["ai été", "as été", "a été", "avons été", "avez été", "ont été"], imp: ["étais", "étais", "était", "étions", "étiez", "étaient"], fut: ["serai", "seras", "sera", "serons", "serez", "seront"], subj: ["sois", "sois", "soit", "soyons", "soyez", "soient"], cond: ["serais", "serais", "serait", "serions", "seriez", "seraient"], ps: ["fus", "fus", "fut", "fûmes", "fûtes", "furent"] } },
     { rank: 2, tr: "Avoir", inf: "avoir", conjugations: { pres: ["ai", "as", "a", "avons", "avez", "ont"], pc: ["ai eu", "as eu", "a eu", "avons eu", "avez eu", "ont eu"], imp: ["avais", "avais", "avait", "avions", "aviez", "avaient"], fut: ["aurai", "auras", "aura", "aurons", "aurez", "auront"], subj: ["aie", "aies", "ait", "ayons", "ayez", "aient"], cond: ["aurais", "aurais", "aurait", "aurions", "auriez", "auraient"], ps: ["eus", "eus", "eut", "eûmes", "eûtes", "eurent"] } },
@@ -217,6 +217,7 @@
 
             const gameInputRef = useRef(null);
 
+            // Verbs list with sorting
             const sortedVerbs = useMemo(() => {
                 let list = [...VERBS_DATA];
                 if (sortBy === 'alphabet') {
@@ -229,6 +230,13 @@
             const gameVerbsPool = useMemo(() => {
                 return VERBS_DATA.filter(v => v.rank <= gameState.filterLimit);
             }, [gameState.filterLimit]);
+
+            // Auto-focus on input field in game mode
+            useEffect(() => {
+                if (view === 'game' && gameState.active && !gameFeedback && gameInputRef.current) {
+                    gameInputRef.current.focus();
+                }
+            }, [view, gameState.active, gameFeedback]);
 
             useEffect(() => {
                 const savedHigh = localStorage.getItem('french_verbs_high_score_v2');
@@ -281,8 +289,7 @@
                 if (!currentQuestion || gameFeedback) return;
 
                 const verb = gameVerbsPool[currentQuestion.vIdx];
-                const tenseId = TENSES[currentQuestion.tIdx].id;
-                const correct = (verb.conjugations[tenseId] && verb.conjugations[tenseId][currentQuestion.pIdx]) ? verb.conjugations[tenseId][currentQuestion.pIdx].toLowerCase() : "-";
+                const correct = (verb.conjugations[TENSES[currentQuestion.tIdx].id] && verb.conjugations[TENSES[currentQuestion.tIdx].id][currentQuestion.pIdx]) ? verb.conjugations[TENSES[currentQuestion.tIdx].id][currentQuestion.pIdx].toLowerCase() : "-";
                 const user = gameInput.trim().toLowerCase();
 
                 if (user === correct) {
@@ -291,7 +298,7 @@
                         const newScore = prev.score + 1;
                         return { ...prev, score: newScore, high: Math.max(prev.high, newScore) };
                     });
-                    setTimeout(() => generateQuestion(), 800);
+                    setTimeout(() => generateQuestion(), 600);
                 } else {
                     setGameFeedback('wrong');
                     const newMistake = {
@@ -337,6 +344,8 @@
                 resetAnswersVisibility(); 
             };
 
+            // --- RENDER VIEWS ---
+
             if (view === 'index') {
                 return (
                     <div className="min-h-screen p-6 md:p-12 text-slate-800 animate-fade-in">
@@ -350,13 +359,13 @@
                                     <div className="flex bg-white rounded-2xl border border-slate-200 shadow-sm p-1">
                                         <button 
                                             onClick={() => setSortBy('alphabet')}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${sortBy === 'alphabet' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${sortBy === 'alphabet' ? 'bg-indigo-600 text-white shadow-inner' : 'text-slate-400 hover:text-indigo-600'}`}
                                         >
                                             <IconSort /> A-Z
                                         </button>
                                         <button 
                                             onClick={() => setSortBy('importance')}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${sortBy === 'importance' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${sortBy === 'importance' ? 'bg-indigo-600 text-white shadow-inner' : 'text-slate-400 hover:text-indigo-600'}`}
                                         >
                                             <IconSort /> Importance
                                         </button>
@@ -380,7 +389,7 @@
                                         const globalIdx = VERBS_DATA.findIndex(v => v.inf === verb.inf);
                                         setCurrentVerbIdx(globalIdx); 
                                         setView('verb-detail'); 
-                                    }} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:border-indigo-300 transition-all text-left group relative overflow-hidden flex flex-col justify-center min-h-[100px]">
+                                    }} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:border-indigo-300 transition-all text-left group relative overflow-hidden flex flex-col justify-center min-h-[100px] pt-8">
                                         <div className="absolute top-0 right-0 bg-slate-50 text-slate-300 text-[8px] font-black px-2 py-1 rounded-bl-lg">#{verb.rank}</div>
                                         <p className="text-lg font-black text-slate-800 group-hover:text-indigo-700 leading-tight truncate">{verb.inf.toUpperCase()}</p>
                                     </button>
@@ -422,7 +431,7 @@
                                                 <button 
                                                     key={pool.label}
                                                     onClick={() => setGamePool(pool.limit)}
-                                                    className={`p-3 rounded-xl border-2 transition-all font-black text-[10px] uppercase ${gameState.filterLimit === pool.limit ? 'border-indigo-500 bg-indigo-500/10 text-white' : 'border-slate-700 bg-slate-900/40 text-slate-500'}`}
+                                                    className={`p-3 rounded-xl border-2 transition-all font-black text-[10px] uppercase ${gameState.filterLimit === pool.limit ? 'border-indigo-500 bg-indigo-500/10 text-white shadow-inner' : 'border-slate-700 bg-slate-900/40 text-slate-500'}`}
                                                 >
                                                     {pool.label}
                                                 </button>
@@ -449,7 +458,7 @@
                                 <div className="bg-slate-800 rounded-3xl p-8 shadow-2xl border border-slate-700 animate-pop">
                                     <div className="text-center mb-6">
                                         <div className="text-indigo-400 font-black uppercase tracking-widest text-[10px] mb-2">Conjuguez le verbe</div>
-                                        <h2 className="text-4xl font-black mb-4">{currentQuestion && gameVerbsPool[currentQuestion.vIdx].inf.toUpperCase()}</h2>
+                                        <h2 className="text-4xl font-black mb-4">{currentQuestion && gameVerbsPool[currentQuestion.vIdx]?.inf.toUpperCase()}</h2>
                                         <div className="flex justify-center gap-2">
                                             {currentQuestion && (
                                                 <>
@@ -515,7 +524,7 @@
                                         </div>
                                     )}
 
-                                    <button onClick={() => setGameState(s => ({...s, setup: true}))} className="w-full bg-indigo-600 py-4 rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all uppercase flex items-center justify-center gap-2">
+                                    <button onClick={() => setGameState(s => ({...s, setup: true}))} className="w-full bg-indigo-600 py-4 rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all uppercase flex items-center justify-center gap-2 shadow-xl">
                                         <IconRefresh /> Rejouer
                                     </button>
                                 </div>
@@ -526,24 +535,25 @@
             }
 
             if (view === 'verb-detail') {
-                const currentVerb = VERBS_DATA[currentVerbIdx];
+                const currentVerb = VERBS_DATA[currentVerbIdx] || VERBS_DATA[0];
                 return (
                     <div className="min-h-screen p-6 md:p-12 text-slate-800 animate-fade-in">
                         <div className="max-w-3xl mx-auto">
                             <div className="flex justify-between items-center mb-8">
-                                <button onClick={goToMenu} className="text-indigo-600 font-black uppercase text-xs flex items-center gap-2"><IconChevronLeft /> Retour</button>
-                                <button onClick={() => { setGameState(s => ({...s, setup: true})); setView('game'); }} className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl font-black text-[10px] border border-indigo-100 uppercase"><IconGamepad /> Mode Jeu</button>
+                                <button onClick={goToMenu} className="text-indigo-600 font-black uppercase text-xs flex items-center gap-2 hover:text-indigo-800"><IconChevronLeft /> Retour</button>
+                                <button onClick={() => { setGameState(s => ({...s, setup: true})); setView('game'); }} className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl font-black text-[10px] border border-indigo-100 uppercase hover:bg-indigo-100 transition-colors"><IconGamepad /> Mode Jeu</button>
                             </div>
-                            <div className="bg-white rounded-[2.5rem] shadow-xl overflow-hidden relative">
-                                <div className="absolute top-10 right-10 bg-white/20 px-3 py-1 rounded-lg text-white font-black text-sm">Rang: #{currentVerb.rank}</div>
+                            <div className="bg-white rounded-[2.5rem] shadow-xl overflow-hidden relative border border-slate-100">
+                                {/* Corrected Rang badge for mobile */}
+                                <div className="absolute top-4 right-4 md:top-10 md:right-10 bg-white/20 px-3 py-1 rounded-lg text-white font-black text-[10px] md:text-sm">Rang: #{currentVerb.rank}</div>
                                 <div className="p-10 bg-indigo-600 text-white text-center">
-                                    <h1 className="text-5xl font-black mb-2 uppercase">{currentVerb.inf}</h1>
+                                    <h1 className="text-3xl md:text-5xl font-black mb-2 uppercase tracking-tight pt-4 md:pt-0">{currentVerb.inf}</h1>
                                     <p className="text-indigo-200 text-xs font-black tracking-[0.2em] uppercase">Choisir un temps</p>
                                 </div>
                                 <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {TENSES.map((tense, tIdx) => (
-                                        <button key={tIdx} onClick={() => { setCurrentTenseIdx(tIdx); setView('quiz'); }} className="p-6 rounded-3xl border-2 border-slate-50 bg-slate-50 hover:border-indigo-400 hover:bg-white transition-all text-left">
-                                            <p className="font-black text-lg uppercase mb-1">{tense.label}</p>
+                                        <button key={tIdx} onClick={() => { setCurrentTenseIdx(tIdx); setView('quiz'); }} className="p-6 rounded-3xl border-2 border-slate-50 bg-slate-50 hover:border-indigo-400 hover:bg-white transition-all text-left group">
+                                            <p className="font-black text-lg uppercase mb-1 group-hover:text-indigo-600">{tense.label}</p>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase">{tense.desc}</p>
                                         </button>
                                     ))}
@@ -555,8 +565,8 @@
             }
 
             if (view === 'quiz') {
-                const currentVerb = VERBS_DATA[currentVerbIdx];
-                const currentTense = TENSES[currentTenseIdx];
+                const currentVerb = VERBS_DATA[currentVerbIdx] || VERBS_DATA[0];
+                const currentTense = TENSES[currentTenseIdx] || TENSES[0];
                 const quizPageKey = `${currentVerbIdx}-${currentTenseIdx}`;
                 const isPageChecked = checked[quizPageKey];
 
@@ -571,11 +581,11 @@
                             </div>
 
                             <div className="mb-6 flex items-center justify-between">
-                                <button onClick={() => setView('verb-detail')} className="px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-[10px] font-black uppercase"><IconChevronLeft /></button>
+                                <button onClick={() => setView('verb-detail')} className="px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-[10px] font-black uppercase hover:text-indigo-600"><IconChevronLeft /></button>
                                 <div className="flex-1 max-w-[200px] mx-4 bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                    <div className="bg-indigo-600 h-full transition-all" style={{ width: `${((currentVerbIdx + 1) / VERBS_DATA.length) * 100}%` }} />
+                                    <div className="bg-indigo-600 h-full transition-all duration-500" style={{ width: `${((currentVerbIdx + 1) / VERBS_DATA.length) * 100}%` }} />
                                 </div>
-                                <button onClick={goToMenu} className="px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-[10px] font-black uppercase"><IconHome /></button>
+                                <button onClick={goToMenu} className="px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100 text-[10px] font-black uppercase hover:text-indigo-600"><IconHome /></button>
                             </div>
 
                             <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
